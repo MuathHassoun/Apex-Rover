@@ -1,0 +1,24 @@
+name: Robot Master Control
+identifier: com.apexrover.robotmastercontrol
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the Icons catalog.
+  uses-material-design: true
+
+  # To add Flutter specific custom fonts, place them in the fonts
+  # subdirectory and reference them using the fontFamily parameter in
+  # the TextStyle widget.
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300

@@ -1,0 +1,55 @@
+{
+  "name": "apex-rover-control",
+  "description": "Apex Rover Control - Flutter app for controlling Apex Rover robots",
+  "version": "1.0.0",
+  "type": "mobile",
+  "platforms": ["iOS", "Android"],
+  "technologies": {
+    "framework": "Flutter",
+    "language": "Dart",
+    "stateManagement": "Riverpod",
+    "realtimeComm": ["MQTT", "WebSocket"],
+    "database": "SQLite",
+    "ui": "Material Design 3"
+  },
+  "features": [
+    {
+      "name": "Dashboard",
+      "status": "completed",
+      "description": "Real-time robot and battery monitoring"
+    },
+    {
+      "name": "Control",
+      "status": "completed",
+      "description": "Robot movement and advanced controls"
+    },
+    {
+      "name": "Sensors",
+      "status": "completed",
+      "description": "Live sensor data visualization"
+    },
+    {
+      "name": "Connection",
+      "status": "completed",
+      "description": "Robot pairing and connection management"
+    },
+    {
+      "name": "System",
+      "status": "completed",
+      "description": "System health and audit logs"
+    },
+    {
+      "name": "About",
+      "status": "completed",
+      "description": "App information and support"
+    }
+  ],
+  "futureFeatures": [
+    "Game mode",
+    "Advanced alerts and notifications",
+    "Cloud dashboard for multiple robots",
+    "Data analytics",
+    "Robot arm control",
+    "Advanced sensor charts"
+  ]
+}

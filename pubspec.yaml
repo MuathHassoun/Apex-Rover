@@ -1,0 +1,89 @@
+name: apex_rover_control
+description: Apex Rover Control - A professional Flutter app to control and monitor Apex Rover robots in real-time with dashboard, sensors, and control interfaces.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  riverpod: ^2.4.0
+  flutter_riverpod: ^2.4.0
+
+  # Real-time Communication
+  mqtt5_client: ^4.4.0
+  web_socket_channel: ^2.4.3
+
+  # Database
+  sqflite: ^2.3.0
+  path: ^1.8.3
+
+  # UI & Design
+  cupertino_icons: ^1.0.6
+  fl_chart: ^0.65.0
+  introduction_screen: ^3.1.11
+  shimmer: ^3.0.0
+
+  # HTTP & Networking
+  http: ^1.1.0
+  dio: ^5.3.1
+
+  # Local Storage
+  shared_preferences: ^2.2.2
+
+  # Date & Time
+  intl: ^0.19.0
+
+  # Logging & Analytics
+  logger: ^2.1.0
+
+  # Device Info
+  device_info_plus: ^9.0.3
+  package_info_plus: ^9.0.0
+
+  # Connectivity
+  connectivity_plus: ^5.0.1
+
+  # Platform Channels (for native features)
+  flutter_local_notifications: ^20.1.0
+
+  # Utility
+  async: ^2.11.0
+  collection: ^1.18.0
+  uuid: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+  riverpod_generator: ^2.3.0
+  build_runner: ^2.4.8
+  flutter_launcher_icons: ^0.11.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/data/
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "apex_rover_icon.png"

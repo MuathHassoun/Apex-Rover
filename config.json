@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "recommendedEnvironment": {
+    "flutterVersion": ">=3.0.0",
+    "dartVersion": ">=3.0.0",
+    "androidSdk": ">=5.0",
+    "iosSdk": ">=11.0"
+  },
+  "mqttConfig": {
+    "brokerUrl": "localhost",
+    "port": 1883,
+    "protocol": "mqtt",
+    "clientId": "robot_master_control_mobile",
+    "keepAlive": 20,
+    "autoReconnect": true,
+    "reconnectInterval": 5
+  },
+  "websocketConfig": {
+    "url": "ws://localhost:8080/ws",
+    "timeout": 30,
+    "autoReconnect": true,
+    "heartbeatInterval": 30
+  },
+  "databaseConfig": {
+    "name": "robot_control.db",
+    "version": 1,
+    "autoCleanupInterval": 86400,
+    "retentionDays": 30
+  },
+  "featureFlags": {
+    "mqttEnabled": true,
+    "websocketEnabled": true,
+    "cloudSyncEnabled": false,
+    "offlineModeEnabled": false,
+    "gameModeEnabled": false,
+    "multiRobotEnabled": false,
+    "analyticsEnabled": false
+  },
+  "uiConfig": {
+    "theme": "material3",
+    "darkModeSupport": true,
+    "animationsEnabled": true,
+    "hapticFeedback": true
+  }
+}

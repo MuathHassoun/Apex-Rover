@@ -1,0 +1,94 @@
+# Build artifacts
+*.apk
+*.aab
+*.jks
+*.keystore
+*.p8
+*.p12
+*.p7b
+*.pfx
+*.pem
+
+# Flutter specific
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+flutter_*.png
+linux/flutter/generated_plugins.cmake
+
+# iOS/macOS
+ios/.symlinks/
+ios/.generated.xcode.config
+ios/Flutter/Flutter.podspec
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/local.properties
+ios/Flutter/plugins.json
+ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android/gradle
+**/android/.gradle
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/gradle-wrapper.jar
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+# Web
+lib/generated_plugin_registrant.dart
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog
+.history
+.svn/
+migrate_working_dir/
+
+# Editor/IDE
+.idea/
+.classpath
+.c9/
+*.launch
+.metadata
+.project
+.pubspec.lock
+.settings/
+*.sublime-project
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
