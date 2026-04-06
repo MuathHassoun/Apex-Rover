@@ -6,6 +6,7 @@ import 'sensors_screen.dart';
 import 'connection_screen.dart';
 import 'system_screen.dart';
 import 'about_screen.dart';
+import 'map_screen.dart';
 
 class NavigationScreen extends ConsumerStatefulWidget {
   const NavigationScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     const ControlScreen(),
     const SensorsScreen(),
     const ConnectionScreen(),
+    const MapScreen(),
     const SystemScreen(),
     const AboutScreen(),
   ];
@@ -31,6 +33,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     'Control',
     'Sensors',
     'Connect',
+    'Map',
     'System',
     'About',
   ];
@@ -40,6 +43,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     Icons.gamepad,
     Icons.sensors,
     Icons.wifi,
+    Icons.map,
     Icons.settings,
     Icons.info,
   ];
@@ -53,22 +57,24 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: List<NavigationDestination>.generate(
-          _screens.length,
-          (int index) {
-            return NavigationDestination(
-              icon: Icon(_screenIcons[index]),
-              label: _screenTitles[index],
-            );
-          },
-        ),
-      ),
+  selectedIndex: _selectedIndex,
+  height: 60,
+  onDestinationSelected: (int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  },
+  labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+  destinations: List<NavigationDestination>.generate(
+    _screens.length,
+    (int index) {
+      return NavigationDestination(
+        icon: Icon(_screenIcons[index], size: 22),
+        label: '',
+      );
+    },
+  ),
+),
     );
   }
 }
