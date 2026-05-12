@@ -5,9 +5,7 @@ import '../providers/robot_provider.dart';
 import '../providers/connection_provider.dart';
 import '../models/robot_model.dart'; // needed for ConnectionStatus enum
 
-import '../widgets/battery_card.dart';
 import '../widgets/status_card.dart';
-import '../widgets/alert_widget.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -15,8 +13,6 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final robot = ref.watch(robotProvider);
-    final isBatteryLow = ref.watch(isBatteryLowProvider);
-    final isBatteryCritical = ref.watch(isBatteryCriticalProvider);
     final connectionStatus = ref.watch(connectionStatusProvider);
 
     return SingleChildScrollView(
@@ -29,7 +25,7 @@ class DashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 border: Border.all(color: AppColors.warning),
                 borderRadius: BorderRadius.circular(AppBorderRadius.lg),
               ),
@@ -49,28 +45,6 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: AppSpacing.lg),
-
-          // Battery Status Card
-          if (robot != null) ...[
-            BatteryCard(battery: robot.batteryStatus),
-            const SizedBox(height: AppSpacing.lg),
-          ],
-
-          // Critical Alerts
-          if (isBatteryCritical)
-            AlertWidget(
-              title: 'Critical Battery Level',
-              message: 'Battery is critically low. Robot may shut down soon.',
-              type: AlertType.critical,
-            ),
-          if (isBatteryLow && !isBatteryCritical)
-            AlertWidget(
-              title: 'Low Battery',
-              message: 'Battery is running low. Consider charging.',
-              type: AlertType.warning,
-            ),
-
-          if (isBatteryCritical || isBatteryLow) const SizedBox(height: AppSpacing.lg),
 
           // Robot State
           if (robot != null) ...[
@@ -98,7 +72,6 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 StatusCard(
                   label: 'Type',
-                  // the robot type lives under its state
                   value: robot.robotState.robotType,
                   status: true,
                 ),

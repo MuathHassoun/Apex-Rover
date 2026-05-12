@@ -42,7 +42,6 @@ class MqttService {
   void _setupSubscriptions() {
     // Subscribe to robot status topic
     _client.subscribe(AppConstants.mqttTopicRobotStatus, MqttQos.atMostOnce);
-    _client.subscribe(AppConstants.mqttTopicBatteryStatus, MqttQos.atMostOnce);
     _client.subscribe(AppConstants.mqttTopicSensors, MqttQos.atMostOnce);
     _client.subscribe(AppConstants.mqttTopicCommandResponse, MqttQos.atMostOnce);
 

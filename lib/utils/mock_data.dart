@@ -11,14 +11,6 @@ class MockData {
     name: 'ApexRover-1',
     type: 'wheeled',
     firmware: '2.1.0',
-    batteryStatus: BatteryStatus(
-      voltage: 12.5,
-      current: 2.3,
-      power: 28.75,
-      percentage: 75,
-      isCharging: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-    ),
     robotState: RobotState(
       isPoweredOn: true,
       isCharging: false,

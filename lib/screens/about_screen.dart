@@ -86,7 +86,7 @@ class AboutScreen extends StatelessWidget {
           _FeatureItem(
             icon: Icons.dashboard,
             title: 'Real-time Dashboard',
-            description: 'Monitor battery status and robot state at a glance',
+            description: 'Monitor robot state and sensor data at a glance',
           ),
           const SizedBox(height: AppSpacing.md),
           _FeatureItem(

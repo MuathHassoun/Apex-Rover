@@ -17,7 +17,6 @@ class AppConstants {
 
   // MQTT Topics
   static const String mqttTopicRobotStatus = 'robot/status';
-  static const String mqttTopicBatteryStatus = 'robot/battery';
   static const String mqttTopicSensors = 'robot/sensors/#';
   static const String mqttTopicControl = 'robot/control';
   static const String mqttTopicCommandResponse = 'robot/command_response';
@@ -34,10 +33,6 @@ class AppConstants {
   static const String prefKeyThemMode = 'theme_mode';
   static const String prefKeyNotificationsEnabled = 'notifications_enabled';
 
-  // Battery Thresholds
-  static const int batteryWarningThreshold = 30;
-  static const int batteryCriticalThreshold = 10;
-
   // Control Settings
   static const int controlUpdateInterval = 100; // milliseconds
   static const double maxSpeed = 100.0;
@@ -45,7 +40,6 @@ class AppConstants {
 
   // Polling Intervals
   static const Duration pollIntervalSensors = Duration(seconds: 2);
-  static const Duration pollIntervalBattery = Duration(seconds: 5);
   static const Duration pollIntervalSystemStatus = Duration(seconds: 10);
 
   // Error Messages

@@ -1,44 +1,3 @@
-/// Robot Battery Status
-class BatteryStatus {
-  final double voltage; // in volts
-  final double current; // in amperes
-  final double power; // in watts
-  final int percentage; // 0-100
-  final bool isCharging;
-  final DateTime timestamp;
-
-  BatteryStatus({
-    required this.voltage,
-    required this.current,
-    required this.power,
-    required this.percentage,
-    required this.isCharging,
-    required this.timestamp,
-  });
-
-  factory BatteryStatus.fromJson(Map<String, dynamic> json) {
-    return BatteryStatus(
-      voltage: (json['voltage'] as num).toDouble(),
-      current: (json['current'] as num).toDouble(),
-      power: (json['power'] as num).toDouble(),
-      percentage: json['percentage'] as int,
-      isCharging: json['isCharging'] as bool,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'voltage': voltage,
-      'current': current,
-      'power': power,
-      'percentage': percentage,
-      'isCharging': isCharging,
-      'timestamp': timestamp.toIso8601String(),
-    };
-  }
-}
-
 /// Robot State
 class RobotState {
   final bool isPoweredOn;
@@ -127,7 +86,6 @@ class Robot {
   final String name;
   final String type;
   final String firmware;
-  final BatteryStatus batteryStatus;
   final RobotState robotState;
   final List<SensorReading> sensors;
   final DateTime lastSync;
@@ -137,7 +95,6 @@ class Robot {
     required this.name,
     required this.type,
     required this.firmware,
-    required this.batteryStatus,
     required this.robotState,
     required this.sensors,
     required this.lastSync,
@@ -149,7 +106,6 @@ class Robot {
       name: json['name'] as String,
       type: json['type'] as String,
       firmware: json['firmware'] as String,
-      batteryStatus: BatteryStatus.fromJson(json['batteryStatus'] as Map<String, dynamic>),
       robotState: RobotState.fromJson(json['robotState'] as Map<String, dynamic>),
       sensors: (json['sensors'] as List)
           .map((e) => SensorReading.fromJson(e as Map<String, dynamic>))
@@ -164,15 +120,11 @@ class Robot {
       'name': name,
       'type': type,
       'firmware': firmware,
-      'batteryStatus': batteryStatus.toJson(),
       'robotState': robotState.toJson(),
       'sensors': sensors.map((e) => e.toJson()).toList(),
       'lastSync': lastSync.toIso8601String(),
     };
   }
-
-  bool get isBatteryLow => batteryStatus.percentage < 20;
-  bool get isBatteryCritical => batteryStatus.percentage < 10;
 }
 
 /// Connection Status

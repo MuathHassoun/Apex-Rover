@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/theme.dart';
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
+import 'drive_mode_screen.dart';
 import 'package:uuid/uuid.dart';
 
 class ControlScreen extends ConsumerStatefulWidget {
@@ -14,14 +15,12 @@ class ControlScreen extends ConsumerStatefulWidget {
 
 class _ControlScreenState extends ConsumerState<ControlScreen> {
   double _speedValue = 50.0;
-  double _rotationValue = 0.0;
   bool _isMoving = false;
 
   final String _commandId = const Uuid().v4();
 
   @override
   Widget build(BuildContext context) {
-    final connectionNotifier = ref.read(connectionStatusProvider.notifier);
     final isConnected =
         ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
@@ -34,7 +33,9 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: isConnected ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
+              color: isConnected
+                  ? AppColors.success.withValues(alpha: 0.1)
+                  : AppColors.error.withValues(alpha: 0.1),
               border: Border.all(
                 color: isConnected ? AppColors.success : AppColors.error,
               ),
@@ -59,39 +60,110 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // Movement Controls
-          Text(
-            'Movement Control',
-            style: AppTextStyles.heading3,
+          // ── Drive Mode button ──────────────────────────────────────────
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => const DriveModeScreen(),
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0D1421), Color(0xFF1A2540)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+                border: Border.all(
+                  color: const Color(0xFF00B4FF).withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00B4FF).withValues(alpha: 0.15),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF00B4FF).withValues(alpha: 0.15),
+                      border: Border.all(
+                        color: const Color(0xFF00B4FF).withValues(alpha: 0.7),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.sports_esports,
+                      color: Color(0xFF00B4FF),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Drive Mode',
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: const Color(0xFF00B4FF),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Steering wheel · Gas pedal · Brake',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios,
+                      color: const Color(0xFF00B4FF).withValues(alpha: 0.7),
+                      size: 16),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          // Joystick/Direction Pad
+          // Movement Controls
+          Text('Movement Control', style: AppTextStyles.heading3),
+          const SizedBox(height: AppSpacing.lg),
+
+          // D-pad
           Center(
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 3,
-                ),
+                border: Border.all(color: AppColors.primary, width: 3),
                 color: Colors.grey[100],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Forward
                   _ControlButton(
                     icon: Icons.arrow_upward,
-                    onPressed: isConnected
-                        ? () => _sendCommand('move_forward')
-                        : null,
+                    onPressed:
+                        isConnected ? () => _sendCommand('move_forward') : null,
                     tooltip: 'Forward',
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  // Left, Stop, Right
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -105,9 +177,8 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                       const SizedBox(width: AppSpacing.md),
                       _ControlButton(
                         icon: Icons.stop_circle,
-                        onPressed: isConnected
-                            ? () => _sendCommand('stop')
-                            : null,
+                        onPressed:
+                            isConnected ? () => _sendCommand('stop') : null,
                         tooltip: 'Stop',
                         isPrimary: true,
                       ),
@@ -122,7 +193,6 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  // Backward
                   _ControlButton(
                     icon: Icons.arrow_downward,
                     onPressed: isConnected
@@ -149,20 +219,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             divisions: 10,
             label: '${_speedValue.toStringAsFixed(0)}%',
             onChanged: isConnected
-                ? (value) {
-                    setState(() {
-                      _speedValue = value;
-                    });
-                  }
+                ? (value) => setState(() => _speedValue = value)
                 : null,
           ),
           const SizedBox(height: AppSpacing.xl),
 
           // Advanced Controls
-          Text(
-            'Advanced Controls',
-            style: AppTextStyles.heading3,
-          ),
+          Text('Advanced Controls', style: AppTextStyles.heading3),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.md,
@@ -206,21 +269,11 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
     final command = ControlCommand(
       commandId: _commandId,
       commandType: commandType,
-      parameters: {
-        'speed': _speedValue,
-        'robotId': 'robot_001',
-      },
+      parameters: {'speed': _speedValue, 'robotId': 'robot_001'},
       timestamp: DateTime.now(),
     );
-
-    final connectionNotifier =
-        ref.read(connectionStatusProvider.notifier);
-    connectionNotifier.sendCommand(command);
-
-    setState(() {
-      _isMoving = commandType != 'stop';
-    });
-
+    ref.read(connectionStatusProvider.notifier).sendCommand(command);
+    setState(() => _isMoving = commandType != 'stop');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Command sent: $commandType'),
@@ -245,15 +298,13 @@ class _ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final button = FloatingActionButton(
-      onPressed: onPressed,
-      backgroundColor: isPrimary ? AppColors.error : AppColors.primary,
-      child: Icon(icon),
-    );
-
     return Tooltip(
       message: tooltip,
-      child: button,
+      child: FloatingActionButton(
+        onPressed: onPressed,
+        backgroundColor: isPrimary ? AppColors.error : AppColors.primary,
+        child: Icon(icon),
+      ),
     );
   }
 }

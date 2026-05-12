@@ -220,39 +220,47 @@ class _MapScreenState extends State<MapScreen> {
           const SizedBox(height: AppSpacing.md),
 
           // Map Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _MapButton(
-                icon: _isRecording ? Icons.stop : Icons.fiber_manual_record,
-                label: _isRecording ? 'Stop' : 'Record',
-                color: _isRecording ? AppColors.error : AppColors.primary,
-                onTap: () => setState(() => _isRecording = !_isRecording),
-              ),
-              _MapButton(
-                icon: _isPlaying ? Icons.pause : Icons.play_arrow,
-                label: _isPlaying ? 'Pause' : 'Play',
-                color: AppColors.success,
-                onTap: () => setState(() => _isPlaying = !_isPlaying),
-              ),
-              _MapButton(
-                icon: Icons.refresh,
-                label: 'Reset',
-                color: AppColors.warning,
-                onTap: () => setState(() {
-                  _path.clear();
-                  _isRecording = false;
-                  _isPlaying = false;
-                }),
-              ),
-              _MapButton(
-                icon: Icons.save,
-                label: 'Save',
-                color: Colors.purple,
-                onTap: () => _showSaveDialog(context),
-              ),
-            ],
-          ),
+         Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    Expanded(
+      child: _MapButton(
+        icon: _isRecording ? Icons.stop : Icons.fiber_manual_record,
+        label: _isRecording ? 'Stop' : 'Record',
+        color: _isRecording ? AppColors.error : AppColors.primary,
+        onTap: () => setState(() => _isRecording = !_isRecording),
+      ),
+    ),
+    Expanded(
+      child: _MapButton(
+        icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+        label: _isPlaying ? 'Pause' : 'Play',
+        color: AppColors.success,
+        onTap: () => setState(() => _isPlaying = !_isPlaying),
+      ),
+    ),
+    Expanded(
+      child: _MapButton(
+        icon: Icons.refresh,
+        label: 'Reset',
+        color: AppColors.warning,
+        onTap: () => setState(() {
+          _path.clear();
+          _isRecording = false;
+          _isPlaying = false;
+        }),
+      ),
+    ),
+    Expanded(
+      child: _MapButton(
+        icon: Icons.save,
+        label: 'Save',
+        color: Colors.purple,
+        onTap: () => _showSaveDialog(context),
+      ),
+    ),
+  ],
+),
 
           const SizedBox(height: AppSpacing.xl),
 
@@ -387,22 +395,27 @@ class _MapButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.4)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: AppTextStyles.caption.copyWith(color: color),
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

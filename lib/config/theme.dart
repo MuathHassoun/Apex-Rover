@@ -89,11 +89,6 @@ class AppColors {
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
 
-  // Battery colors
-  static const Color batteryFull = Color(0xFF4CAF50);
-  static const Color batteryWarning = Color(0xFFFFC107);
-  static const Color batteryCritical = Color(0xFFF44336);
-
   // Status colors
   static const Color online = Color(0xFF4CAF50);
   static const Color offline = Color(0xFFBDBDBD);
