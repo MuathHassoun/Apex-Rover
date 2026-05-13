@@ -40,18 +40,46 @@ class WebSocketService {
   }
 
   Future<void> sendCommand(ControlCommand command) async {
-    if (!_isConnected) {
-      _logger.w('WebSocket not connected, cannot send command');
-      return;
+  if (!_isConnected) {
+    _logger.w('WebSocket not connected, cannot send command');
+    return;
+  }
+
+  try {
+    String message;
+
+    switch (command.commandType) {
+      case 'move_forward':
+        message = 'FORWARD';
+        break;
+      case 'move_backward':
+        message = 'BACKWARD';
+        break;
+      case 'turn_left':
+        message = 'LEFT';
+        break;
+      case 'turn_right':
+        message = 'RIGHT';
+        break;
+      case 'stop':
+        message = 'STOP';
+        break;
+      default:
+        message = command.commandType.toUpperCase();
     }
 
-    try {
-      _channel.sink.add(command.toJson().toString());
-      _logger.i('Command sent via WebSocket: ${command.commandType}');
-    } catch (e) {
-      _logger.e('Error sending command: $e');
+    _channel.sink.add(message);
+
+    if (command.parameters.containsKey('speed')) {
+      final speed = command.parameters['speed'].round();
+      _channel.sink.add('SPEED:$speed');
     }
+
+    _logger.i('Command sent via WebSocket: $message');
+  } catch (e) {
+    _logger.e('Error sending command: $e');
   }
+}
 
   void addListener(Function(dynamic message) listener) {
     _listeners.add(listener);

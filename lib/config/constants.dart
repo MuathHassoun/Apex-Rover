@@ -12,7 +12,8 @@ class AppConstants {
   static const Duration mqttReconnectInterval = Duration(seconds: 5);
 
   // WebSocket Settings
-  static const String webSocketUrl = 'ws://localhost:8080/ws';
+static const String webSocketUrl = 'ws://192.168.4.1:81';
+  
   static const Duration webSocketTimeout = Duration(seconds: 30);
 
   // MQTT Topics
