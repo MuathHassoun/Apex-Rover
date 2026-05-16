@@ -228,26 +228,16 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           Text('Advanced Controls', style: AppTextStyles.heading3),
           const SizedBox(height: AppSpacing.md),
           Wrap(
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.md,
-            children: [
-              FilledButton.icon(
-                onPressed: isConnected ? () {} : null,
-                icon: const Icon(Icons.pan_tool),
-                label: const Text('Arm Control'),
-              ),
-              FilledButton.icon(
-                onPressed: isConnected ? () {} : null,
-                icon: const Icon(Icons.camera),
-                label: const Text('Camera'),
-              ),
-              FilledButton.icon(
-                onPressed: isConnected ? () {} : null,
-                icon: const Icon(Icons.record_voice_over),
-                label: const Text('Record'),
-              ),
-            ],
-          ),
+  spacing: AppSpacing.md,
+  runSpacing: AppSpacing.md,
+  children: [
+    FilledButton.icon(
+      onPressed: isConnected ? () {} : null,
+      icon: const Icon(Icons.pan_tool),
+      label: const Text('Arm Control'),
+    ),
+  ],
+),
           const SizedBox(height: AppSpacing.xl),
 
           // Status

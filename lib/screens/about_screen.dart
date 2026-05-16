@@ -54,7 +54,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Robot Master Control is a professional mobile application for controlling and monitoring robots in real-time. It provides intuitive controls, live sensor data visualization, and comprehensive system monitoring.',
+            'Robot Master Control is a professional mobile application for controlling robots in real-time. It provides intuitive controls and flexible robot connectivity.',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Colors.grey[700],
               height: 1.6,
@@ -69,7 +69,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Our team is made up of experienced developers and engineers who are passionate about robotics and dedicated to delivering the best robot‑control experience.\nAlways striving for improvement, the team includes:\n  • Muath Hassoun\n  • Abedulhafiz Elwan',
+            'Our team is made up of experienced developers and engineers who are passionate about robotics and dedicated to delivering the best robot-control experience.\nAlways striving for improvement, the team includes:\n  • Muath Hassoun\n  • Abedulhafiz Elwan',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Colors.grey[700],
               height: 1.6,
@@ -86,19 +86,13 @@ class AboutScreen extends StatelessWidget {
           _FeatureItem(
             icon: Icons.dashboard,
             title: 'Real-time Dashboard',
-            description: 'Monitor robot state and sensor data at a glance',
+            description: 'Monitor robot state at a glance',
           ),
           const SizedBox(height: AppSpacing.md),
           _FeatureItem(
             icon: Icons.gamepad,
             title: 'Intuitive Control',
             description: 'Easy-to-use controls for robot movement and operations',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _FeatureItem(
-            icon: Icons.sensors,
-            title: 'Sensor Monitoring',
-            description: 'Live data from multiple sensors with history logging',
           ),
           const SizedBox(height: AppSpacing.md),
           _FeatureItem(
@@ -189,7 +183,7 @@ class AboutScreen extends StatelessWidget {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Opening documentation...'),
+                        content: Text('Opening documentation.'),
                       ),
                     );
                   },
@@ -204,7 +198,7 @@ class AboutScreen extends StatelessWidget {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Opening support page...'),
+                        content: Text('Opening support page.'),
                       ),
                     );
                   },
@@ -219,7 +213,7 @@ class AboutScreen extends StatelessWidget {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Checking for updates...'),
+                        content: Text('Checking for updates.'),
                       ),
                     );
                   },

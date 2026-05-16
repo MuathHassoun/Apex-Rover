@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
 import '../config/constants.dart';
 import '../models/robot_model.dart';
 
@@ -14,7 +15,9 @@ class WebSocketService {
       _channel = WebSocketChannel.connect(Uri.parse(AppConstants.webSocketUrl));
       _isConnected = true;
       _logger.i('WebSocket connected');
+
       _setupListening();
+
       return true;
     } catch (e) {
       _logger.e('WebSocket connection error: $e');
@@ -26,6 +29,7 @@ class WebSocketService {
   void _setupListening() {
     _channel.stream.listen(
       (message) {
+        _logger.i('Message from ESP32: $message');
         _notifyListeners(message);
       },
       onError: (error) {
@@ -40,46 +44,58 @@ class WebSocketService {
   }
 
   Future<void> sendCommand(ControlCommand command) async {
-  if (!_isConnected) {
-    _logger.w('WebSocket not connected, cannot send command');
-    return;
+    if (!_isConnected) {
+      _logger.w('WebSocket not connected, cannot send command');
+      return;
+    }
+
+    try {
+      final message = _mapCommandType(command.commandType);
+
+      _channel.sink.add(message);
+      _logger.i('Command sent via WebSocket: $message');
+
+      if (command.parameters.containsKey('speed')) {
+        final dynamic rawSpeed = command.parameters['speed'];
+        final int speed = rawSpeed is num ? rawSpeed.round() : 50;
+        final int safeSpeed = speed.clamp(0, 100);
+
+        final speedMessage = 'SPEED:$safeSpeed';
+        _channel.sink.add(speedMessage);
+        _logger.i('Speed sent via WebSocket: $speedMessage');
+      }
+    } catch (e) {
+      _logger.e('Error sending command: $e');
+    }
   }
 
-  try {
-    String message;
-
-    switch (command.commandType) {
+  String _mapCommandType(String commandType) {
+    switch (commandType) {
       case 'move_forward':
-        message = 'FORWARD';
-        break;
+        return 'FORWARD';
       case 'move_backward':
-        message = 'BACKWARD';
-        break;
+        return 'BACKWARD';
       case 'turn_left':
-        message = 'LEFT';
-        break;
+        return 'LEFT';
       case 'turn_right':
-        message = 'RIGHT';
-        break;
+        return 'RIGHT';
       case 'stop':
-        message = 'STOP';
-        break;
+        return 'STOP';
+
+      // For Drive Mode shortcuts
+      case 'forward':
+        return 'FORWARD';
+      case 'backward':
+        return 'BACKWARD';
+      case 'left':
+        return 'LEFT';
+      case 'right':
+        return 'RIGHT';
+
       default:
-        message = command.commandType.toUpperCase();
+        return commandType.toUpperCase();
     }
-
-    _channel.sink.add(message);
-
-    if (command.parameters.containsKey('speed')) {
-      final speed = command.parameters['speed'].round();
-      _channel.sink.add('SPEED:$speed');
-    }
-
-    _logger.i('Command sent via WebSocket: $message');
-  } catch (e) {
-    _logger.e('Error sending command: $e');
   }
-}
 
   void addListener(Function(dynamic message) listener) {
     _listeners.add(listener);
@@ -90,13 +106,18 @@ class WebSocketService {
   }
 
   void _notifyListeners(dynamic message) {
-    for (var listener in _listeners) {
+    for (final listener in _listeners) {
       listener(message);
     }
   }
 
   Future<void> disconnect() async {
     try {
+      if (_isConnected) {
+        _channel.sink.add('STOP');
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
       await _channel.sink.close();
       _isConnected = false;
       _logger.i('WebSocket disconnected');
@@ -107,3 +128,4 @@ class WebSocketService {
 
   bool get isConnected => _isConnected;
 }
+
