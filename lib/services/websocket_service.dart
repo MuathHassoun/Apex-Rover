@@ -55,6 +55,11 @@ class WebSocketService {
       _channel.sink.add(message);
       _logger.i('Command sent via WebSocket: $message');
 
+      // Do not send SPEED with mode or arm commands
+      if (message.startsWith('MODE:') || message.startsWith('ARM:')) {
+        return;
+      }
+
       if (command.parameters.containsKey('speed')) {
         final dynamic rawSpeed = command.parameters['speed'];
         final int speed = rawSpeed is num ? rawSpeed.round() : 50;
@@ -70,6 +75,14 @@ class WebSocketService {
   }
 
   String _mapCommandType(String commandType) {
+    if (commandType.startsWith('MODE:')) {
+      return commandType;
+    }
+
+    if (commandType.startsWith('ARM:')) {
+      return commandType;
+    }
+
     switch (commandType) {
       case 'move_forward':
         return 'FORWARD';
@@ -128,4 +141,3 @@ class WebSocketService {
 
   bool get isConnected => _isConnected;
 }
-

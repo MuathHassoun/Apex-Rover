@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'arm_control_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/theme.dart';
 import '../models/robot_model.dart';
@@ -16,6 +17,10 @@ class ControlScreen extends ConsumerStatefulWidget {
 class _ControlScreenState extends ConsumerState<ControlScreen> {
   double _speedValue = 50.0;
   bool _isMoving = false;
+
+  // NORMAL: regular driving with safety sensors
+  // CLIMB: stairs mode, stairs should not be treated as normal obstacle
+  String _currentMode = 'NORMAL';
 
   final String _commandId = const Uuid().v4();
 
@@ -58,9 +63,10 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: AppSpacing.lg),
 
-          // ── Drive Mode button ──────────────────────────────────────────
+          // Drive Mode button
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(
@@ -131,13 +137,124 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios,
-                      color: const Color(0xFF00B4FF).withValues(alpha: 0.7),
-                      size: 16),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: const Color(0xFF00B4FF).withValues(alpha: 0.7),
+                    size: 16,
+                  ),
                 ],
               ),
             ),
           ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // Operation Mode
+          Text('Operation Mode', style: AppTextStyles.heading3),
+          const SizedBox(height: AppSpacing.md),
+
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D1421), Color(0xFF1A2540)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+              border: Border.all(
+                color: _currentMode == 'CLIMB'
+                    ? Colors.orange.withValues(alpha: 0.8)
+                    : AppColors.success.withValues(alpha: 0.8),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (_currentMode == 'CLIMB'
+                          ? Colors.orange
+                          : AppColors.success)
+                      .withValues(alpha: 0.15),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ModeButton(
+                        title: 'Normal',
+                        subtitle: 'Obstacle safety',
+                        icon: Icons.shield,
+                        isSelected: _currentMode == 'NORMAL',
+                        color: AppColors.success,
+                        onPressed: () => _changeMode('NORMAL'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: _ModeButton(
+                        title: 'Climb',
+                        subtitle: 'Stairs mode',
+                        icon: Icons.stairs,
+                        isSelected: _currentMode == 'CLIMB',
+                        color: Colors.orange,
+                        onPressed: () => _changeMode('CLIMB'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        _currentMode == 'CLIMB'
+                            ? Icons.warning_amber_rounded
+                            : Icons.verified_user,
+                        color: _currentMode == 'CLIMB'
+                            ? Colors.orange
+                            : AppColors.success,
+                        size: 22,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          _currentMode == 'CLIMB'
+                              ? 'Climb Mode: used for stairs. The robot should not stop just because the stairs are detected as a front obstacle.'
+                              : 'Normal Mode: used for regular driving. Safety sensors can stop the robot when an obstacle is detected.',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!isConnected) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Connect to the robot to send mode commands.',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Colors.white.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
           const SizedBox(height: AppSpacing.lg),
 
           // Movement Controls
@@ -204,6 +321,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
               ),
             ),
           ),
+
           const SizedBox(height: AppSpacing.xl),
 
           // Speed Control
@@ -222,22 +340,31 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                 ? (value) => setState(() => _speedValue = value)
                 : null,
           ),
+
           const SizedBox(height: AppSpacing.xl),
 
           // Advanced Controls
           Text('Advanced Controls', style: AppTextStyles.heading3),
           const SizedBox(height: AppSpacing.md),
           Wrap(
-  spacing: AppSpacing.md,
-  runSpacing: AppSpacing.md,
-  children: [
-    FilledButton.icon(
-      onPressed: isConnected ? () {} : null,
-      icon: const Icon(Icons.pan_tool),
-      label: const Text('Arm Control'),
-    ),
-  ],
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.md,
+            children: [
+              FilledButton.icon(
+  onPressed: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const ArmControlScreen(),
+      ),
+    );
+  },
+  icon: const Icon(Icons.pan_tool),
+  label: const Text('Arm Control'),
 ),
+            ],
+          ),
+
           const SizedBox(height: AppSpacing.xl),
 
           // Status
@@ -255,19 +382,127 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
     );
   }
 
+  void _changeMode(String mode) {
+    final isConnected =
+        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+
+    setState(() {
+      _currentMode = mode;
+    });
+
+    if (isConnected) {
+      _sendCommand('MODE:$mode');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$mode mode sent to robot'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$mode mode selected locally. Connect to send it.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _sendCommand(String commandType) {
     final command = ControlCommand(
       commandId: _commandId,
       commandType: commandType,
-      parameters: {'speed': _speedValue, 'robotId': 'robot_001'},
+      parameters: {
+        'speed': _speedValue,
+        'robotId': 'robot_001',
+        'mode': _currentMode,
+      },
       timestamp: DateTime.now(),
     );
+
     ref.read(connectionStatusProvider.notifier).sendCommand(command);
-    setState(() => _isMoving = commandType != 'stop');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Command sent: $commandType'),
-        duration: const Duration(seconds: 2),
+
+    setState(() {
+      _isMoving = commandType != 'stop' && !commandType.startsWith('MODE:');
+    });
+
+    if (!commandType.startsWith('MODE:')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Command sent: $commandType'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  const _ModeButton({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(AppBorderRadius.md),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          border: Border.all(
+            color: isSelected ? color : Colors.white.withValues(alpha: 0.25),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 30,
+              color: isSelected ? Colors.white : color,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.65),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

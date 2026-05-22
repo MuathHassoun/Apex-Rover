@@ -5,6 +5,27 @@ import '../config/theme.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({Key? key}) : super(key: key);
 
+  String _todayDate() {
+    final now = DateTime.now();
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return '${months[now.month - 1]} ${now.day}, ${now.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -23,7 +44,7 @@ class AboutScreen extends StatelessWidget {
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(AppBorderRadius.xl),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.smart_toy,
                     size: 64,
                     color: Colors.white,
@@ -83,19 +104,19 @@ class AboutScreen extends StatelessWidget {
             style: AppTextStyles.heading3,
           ),
           const SizedBox(height: AppSpacing.md),
-          _FeatureItem(
+          const _FeatureItem(
             icon: Icons.dashboard,
             title: 'Real-time Dashboard',
             description: 'Monitor robot state at a glance',
           ),
           const SizedBox(height: AppSpacing.md),
-          _FeatureItem(
+          const _FeatureItem(
             icon: Icons.gamepad,
             title: 'Intuitive Control',
             description: 'Easy-to-use controls for robot movement and operations',
           ),
           const SizedBox(height: AppSpacing.md),
-          _FeatureItem(
+          const _FeatureItem(
             icon: Icons.wifi,
             title: 'Flexible Connectivity',
             description: 'Support for MQTT and WebSocket connections',
@@ -113,115 +134,28 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 children: [
-                  _InfoRow(
+                  const _InfoRow(
                     label: 'Robot Model',
                     value: 'ApexRover Pro',
                   ),
                   _divider,
-                  _InfoRow(
+                  const _InfoRow(
                     label: 'Firmware Version',
                     value: '2.1.0',
                   ),
                   _divider,
-                  _InfoRow(
+                  const _InfoRow(
                     label: 'API Version',
                     value: '1.0',
                   ),
                   _divider,
                   _InfoRow(
                     label: 'Last Updated',
-                    value: 'Feb 27, 2026',
+                    value: _todayDate(),
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-
-          // Team & Credits
-          Text(
-            'Credits & Support',
-            style: AppTextStyles.heading3,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Card(
-            color: Colors.grey[50],
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Development Team',
-                    style: AppTextStyles.labelLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    '• Flutter Development\n• Backend Services\n• Hardware Integration\n• UI/UX Design',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.grey[700],
-                      height: 1.8,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Support Links
-          Text(
-            'Support & Resources',
-            style: AppTextStyles.heading3,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Opening documentation.'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.help),
-                  label: const Text('View Documentation'),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Opening support page.'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.mail),
-                  label: const Text('Contact Support'),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Checking for updates.'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.update),
-                  label: const Text('Check for Updates'),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: AppSpacing.xl),
 
