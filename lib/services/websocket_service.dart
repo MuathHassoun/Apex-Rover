@@ -55,8 +55,10 @@ class WebSocketService {
       _channel.sink.add(message);
       _logger.i('Command sent via WebSocket: $message');
 
-      // Do not send SPEED with mode or arm commands
-      if (message.startsWith('MODE:') || message.startsWith('ARM:')) {
+      // Do not send SPEED with mode, arm, or jack commands
+      if (message.startsWith('MODE:') ||
+          message.startsWith('ARM:') ||
+          message.startsWith('JACK:')) {
         return;
       }
 
@@ -80,6 +82,10 @@ class WebSocketService {
     }
 
     if (commandType.startsWith('ARM:')) {
+      return commandType;
+    }
+
+    if (commandType.startsWith('JACK:')) {
       return commandType;
     }
 
@@ -128,6 +134,8 @@ class WebSocketService {
     try {
       if (_isConnected) {
         _channel.sink.add('STOP');
+        _channel.sink.add('JACK:FRONT:STOP');
+        _channel.sink.add('JACK:REAR:STOP');
         await Future.delayed(const Duration(milliseconds: 100));
       }
 

@@ -51,6 +51,26 @@ class _DriveModeScreenState extends ConsumerState<DriveModeScreen> {
     _sendCommand('stop', force: true);
   }
 
+  void _sendJackCommand(String commandType) {
+    final now = DateTime.now();
+
+    setState(() {
+      _lastCommand = commandType;
+      _lastSendTime = now;
+    });
+
+    final command = ControlCommand(
+      commandId: 'jack_${now.millisecondsSinceEpoch}',
+      commandType: commandType,
+      parameters: const {
+        'robotId': 'robot_001',
+      },
+      timestamp: now,
+    );
+
+    ref.read(connectionStatusProvider.notifier).sendCommand(command);
+  }
+
   void _onSteerChanged(double value) {
     setState(() => _steer = value);
 
@@ -81,7 +101,7 @@ class _DriveModeScreenState extends ConsumerState<DriveModeScreen> {
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
@@ -90,18 +110,19 @@ class _DriveModeScreenState extends ConsumerState<DriveModeScreen> {
                 lastCommand: _lastCommand,
                 speed: _speed,
               ),
+
               const SizedBox(height: 20),
 
-              Expanded(
-                child: Center(
-                  child: _SteeringWheel(
-                    value: _steer,
-                    enabled: isConnected,
-                    onChanged: _onSteerChanged,
-                    onEnd: _onSteerEnd,
-                  ),
+              Center(
+                child: _SteeringWheel(
+                  value: _steer,
+                  enabled: isConnected,
+                  onChanged: _onSteerChanged,
+                  onEnd: _onSteerEnd,
                 ),
               ),
+
+              const SizedBox(height: 20),
 
               _SpeedSlider(
                 speed: _speed,
@@ -119,7 +140,9 @@ class _DriveModeScreenState extends ConsumerState<DriveModeScreen> {
                     timestamp: DateTime.now(),
                   );
 
-                  ref.read(connectionStatusProvider.notifier).sendCommand(command);
+                  ref
+                      .read(connectionStatusProvider.notifier)
+                      .sendCommand(command);
                 },
               ),
 
@@ -157,6 +180,15 @@ class _DriveModeScreenState extends ConsumerState<DriveModeScreen> {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 18),
+
+              _JackControlPanel(
+                enabled: isConnected,
+                onJackCommand: _sendJackCommand,
+              ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -260,6 +292,230 @@ class _SpeedSlider extends StatelessWidget {
             onChanged: enabled ? onChanged : null,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _JackControlPanel extends StatelessWidget {
+  final bool enabled;
+  final ValueChanged<String> onJackCommand;
+
+  const _JackControlPanel({
+    required this.enabled,
+    required this.onJackCommand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B1726),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.orangeAccent.withOpacity(0.45),
+          width: 1.3,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.stairs, color: Colors.orangeAccent),
+              SizedBox(width: 8),
+              Text(
+                'Stair Assist Jacks',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            'Control front and rear linear actuators while climbing or descending stairs.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.58),
+              fontSize: 12,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          _SingleJackControl(
+            title: 'Front Jack',
+            subtitle: 'L298N OUT3 / OUT4',
+            enabled: enabled,
+            color: Colors.cyanAccent,
+            onExtend: () => onJackCommand('JACK:FRONT:EXTEND'),
+            onStop: () => onJackCommand('JACK:FRONT:STOP'),
+            onRetract: () => onJackCommand('JACK:FRONT:RETRACT'),
+          ),
+
+          const SizedBox(height: 14),
+
+          _SingleJackControl(
+            title: 'Rear Jack',
+            subtitle: 'L298N OUT1 / OUT2',
+            enabled: enabled,
+            color: Colors.amberAccent,
+            onExtend: () => onJackCommand('JACK:REAR:EXTEND'),
+            onStop: () => onJackCommand('JACK:REAR:STOP'),
+            onRetract: () => onJackCommand('JACK:REAR:RETRACT'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SingleJackControl extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool enabled;
+  final Color color;
+  final VoidCallback onExtend;
+  final VoidCallback onStop;
+  final VoidCallback onRetract;
+
+  const _SingleJackControl({
+    required this.title,
+    required this.subtitle,
+    required this.enabled,
+    required this.color,
+    required this.onExtend,
+    required this.onStop,
+    required this.onRetract,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.open_in_full, color: enabled ? color : Colors.grey),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: enabled ? Colors.white : Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.45),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: _JackButton(
+                  label: 'EXTEND',
+                  icon: Icons.keyboard_arrow_up,
+                  color: color,
+                  enabled: enabled,
+                  onTap: onExtend,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _JackButton(
+                  label: 'STOP',
+                  icon: Icons.stop_circle,
+                  color: Colors.redAccent,
+                  enabled: enabled,
+                  onTap: onStop,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _JackButton(
+                  label: 'RETRACT',
+                  icon: Icons.keyboard_arrow_down,
+                  color: color,
+                  enabled: enabled,
+                  onTap: onRetract,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JackButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _JackButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color:
+              enabled ? color.withOpacity(0.15) : Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: enabled ? color.withOpacity(0.85) : Colors.grey,
+            width: 1.2,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: enabled ? color : Colors.grey, size: 25),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: enabled ? color : Colors.grey,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -404,7 +660,8 @@ class _PedalButton extends StatelessWidget {
       child: Container(
         height: 90,
         decoration: BoxDecoration(
-          color: enabled ? color.withOpacity(0.18) : Colors.grey.withOpacity(0.12),
+          color:
+              enabled ? color.withOpacity(0.18) : Colors.grey.withOpacity(0.12),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: enabled ? color : Colors.grey,
