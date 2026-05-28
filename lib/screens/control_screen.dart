@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'camera_control_screen.dart';
 import 'arm_control_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/theme.dart';
@@ -149,7 +150,6 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           Text('Movement Control', style: AppTextStyles.heading3),
           const SizedBox(height: AppSpacing.lg),
 
-          // D-pad
           Center(
             child: Container(
               width: 250,
@@ -249,6 +249,19 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                 },
                 icon: const Icon(Icons.pan_tool),
                 label: const Text('Arm Control'),
+              ),
+
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (_) => const CameraControlScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.videocam),
+                label: const Text('Camera Control'),
               ),
             ],
           ),
