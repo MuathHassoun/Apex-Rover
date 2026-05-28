@@ -1,95 +1,100 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CameraControlScreen extends StatefulWidget {
+import '../models/robot_model.dart';
+import '../providers/connection_provider.dart';
+
+class CameraControlScreen extends ConsumerStatefulWidget {
   const CameraControlScreen({Key? key}) : super(key: key);
 
   @override
-  State<CameraControlScreen> createState() => _CameraControlScreenState();
+  ConsumerState<CameraControlScreen> createState() =>
+      _CameraControlScreenState();
 }
 
-class _CameraControlScreenState extends State<CameraControlScreen> {
-  // غيّر هذا IP حسب IP الرازبيري عندكم
-  final String raspberryBaseUrl = 'http://192.168.4.2:5000';
-
+class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
   String _lastCommand = 'CAM:STOP';
-  bool _isSending = false;
 
-  String get videoUrl => '$raspberryBaseUrl/video_feed';
+  bool get _isConnected =>
+      ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
-  Future<void> _sendCameraCommand(String command) async {
-    setState(() {
-      _isSending = true;
-      _lastCommand = command;
-    });
+  void _sendCameraCommand(String commandType) {
+    final isConnected =
+        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
-    try {
-      final response = await http.post(
-        Uri.parse('$raspberryBaseUrl/camera_command'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'command': command}),
-      );
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Camera command sent: $command'),
-            duration: const Duration(milliseconds: 800),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send command: $command'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
+    if (!isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Raspberry Pi not reachable: $e'),
-          backgroundColor: Colors.red,
+        const SnackBar(
+          content: Text('Not connected to robot'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 1),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isSending = false);
-      }
+      return;
     }
+
+    final now = DateTime.now();
+
+    final command = ControlCommand(
+      commandId: 'camera_${now.millisecondsSinceEpoch}',
+      commandType: commandType,
+      parameters: const {
+        'robotId': 'robot_001',
+      },
+      timestamp: now,
+    );
+
+    ref.read(connectionStatusProvider.notifier).sendCommand(command);
+
+    setState(() {
+      _lastCommand = commandType;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Camera command sent: $commandType'),
+        duration: const Duration(milliseconds: 700),
+      ),
+    );
   }
 
   Widget _cameraButton({
     required String label,
     required IconData icon,
     required String command,
-    Color color = Colors.blueAccent,
+    required Color color,
   }) {
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+
     return Expanded(
       child: GestureDetector(
-        onTap: _isSending ? null : () => _sendCameraCommand(command),
+        onTap: isConnected ? () => _sendCameraCommand(command) : null,
         child: Container(
-          height: 72,
+          height: 78,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.16),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color, width: 1.4),
+            color: isConnected
+                ? color.withOpacity(0.16)
+                : Colors.grey.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isConnected ? color.withOpacity(0.9) : Colors.grey,
+              width: 1.5,
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 4),
+              Icon(
+                icon,
+                color: isConnected ? color : Colors.grey,
+                size: 30,
+              ),
+              const SizedBox(height: 5),
               Text(
                 label,
                 style: TextStyle(
-                  color: color,
+                  color: isConnected ? color : Colors.grey,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -103,12 +108,29 @@ class _CameraControlScreenState extends State<CameraControlScreen> {
 
   @override
   void dispose() {
-    _sendCameraCommand('CAM:STOP');
+    if (_isConnected) {
+      final now = DateTime.now();
+
+      final command = ControlCommand(
+        commandId: 'camera_stop_${now.millisecondsSinceEpoch}',
+        commandType: 'CAM:STOP',
+        parameters: const {
+          'robotId': 'robot_001',
+        },
+        timestamp: now,
+      );
+
+      ref.read(connectionStatusProvider.notifier).sendCommand(command);
+    }
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+
     return Scaffold(
       backgroundColor: const Color(0xFF050B12),
       appBar: AppBar(
@@ -117,75 +139,95 @@ class _CameraControlScreenState extends State<CameraControlScreen> {
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               Container(
                 width: double.infinity,
-                height: 260,
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(18),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D1421), Color(0xFF1A2540)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.cyanAccent.withOpacity(0.7),
+                    color: Colors.cyanAccent.withOpacity(0.55),
                     width: 1.4,
                   ),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  videoUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Text(
-                        'Camera stream not available\nCheck Raspberry Pi IP',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B1726),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
+                child: Column(
                   children: [
-                    const Icon(Icons.videocam, color: Colors.cyanAccent),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Last Command: $_lastCommand',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Icon(
+                      Icons.videocam,
+                      color: isConnected ? Colors.cyanAccent : Colors.grey,
+                      size: 44,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Camera Stand Control',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_isSending)
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Control camera direction using ESP32, UNO, stepper, and servo',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.62),
+                        fontSize: 13,
                       ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isConnected
+                                ? Icons.check_circle
+                                : Icons.error_outline,
+                            color: isConnected
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              isConnected
+                                  ? 'Connected | Last Command: $_lastCommand'
+                                  : 'Not Connected',
+                              style: TextStyle(
+                                color: isConnected
+                                    ? Colors.white
+                                    : Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
 
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Camera Direction',
+                  'Tilt Control',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -221,6 +263,20 @@ class _CameraControlScreenState extends State<CameraControlScreen> {
                 ],
               ),
 
+              const SizedBox(height: 24),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Rotation Control',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 12),
 
               Row(
@@ -229,6 +285,7 @@ class _CameraControlScreenState extends State<CameraControlScreen> {
                     label: 'LEFT',
                     icon: Icons.keyboard_arrow_left,
                     command: 'CAM:LEFT',
+                    color: Colors.cyanAccent,
                   ),
                   const SizedBox(width: 12),
                   _cameraButton(
@@ -242,8 +299,20 @@ class _CameraControlScreenState extends State<CameraControlScreen> {
                     label: 'RIGHT',
                     icon: Icons.keyboard_arrow_right,
                     command: 'CAM:RIGHT',
+                    color: Colors.cyanAccent,
                   ),
                 ],
+              ),
+
+              const Spacer(),
+
+              Text(
+                'Commands go to ESP32, then ESP32 sends CAM commands to UNO',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.45),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
