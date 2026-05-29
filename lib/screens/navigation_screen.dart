@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/app_mode_provider.dart';
 import 'dashboard_screen.dart';
 import 'control_screen.dart';
 import 'connection_screen.dart';
 import 'about_screen.dart';
-import 'map_screen.dart';
 
 class NavigationScreen extends ConsumerStatefulWidget {
   const NavigationScreen({Key? key}) : super(key: key);
@@ -21,7 +21,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     const DashboardScreen(),
     const ControlScreen(),
     const ConnectionScreen(),
-    const MapScreen(),
     const AboutScreen(),
   ];
 
@@ -29,7 +28,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     'Home',
     'Control',
     'Connect',
-    'Map',
     'About',
   ];
 
@@ -37,12 +35,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     Icons.dashboard,
     Icons.gamepad,
     Icons.wifi,
-    Icons.map,
     Icons.info,
   ];
 
   @override
   Widget build(BuildContext context) {
+    final appMode = ref.watch(appControlModeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_screenTitles[_selectedIndex]),
@@ -53,6 +52,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         selectedIndex: _selectedIndex,
         height: 60,
         onDestinationSelected: (int index) {
+          final isControlTab = index == 1;
+          final isAutomaticMode = appMode == AppControlMode.automatic;
+
+          if (isControlTab && isAutomaticMode) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Control is disabled in Automatic Mode. Switch to Manual Mode first.',
+                ),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
+
           setState(() {
             _selectedIndex = index;
           });
@@ -61,8 +76,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         destinations: List<NavigationDestination>.generate(
           _screens.length,
           (int index) {
+            final isControlTab = index == 1;
+            final isAutomaticMode = appMode == AppControlMode.automatic;
+
             return NavigationDestination(
-              icon: Icon(_screenIcons[index], size: 22),
+              icon: Icon(
+                _screenIcons[index],
+                size: 22,
+                color: isControlTab && isAutomaticMode ? Colors.grey : null,
+              ),
               label: '',
             );
           },
