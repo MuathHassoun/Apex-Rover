@@ -1,3 +1,4 @@
+
 class AppConstants {
   // App Info
   static const String appName = 'Apex Rover Control';
@@ -12,8 +13,9 @@ class AppConstants {
   static const Duration mqttReconnectInterval = Duration(seconds: 5);
 
   // WebSocket Settings
-static const String webSocketUrl = 'ws://192.168.4.1:81';
-  
+  // ESP32 Access Point default IP is 192.168.4.1.
+  // Mobile phone must be connected to ESP32 WiFi: Apex_Rover_Net.
+  static const String webSocketUrl = 'ws://192.168.4.1:81';
   static const Duration webSocketTimeout = Duration(seconds: 30);
 
   // MQTT Topics
@@ -35,7 +37,7 @@ static const String webSocketUrl = 'ws://192.168.4.1:81';
   static const String prefKeyNotificationsEnabled = 'notifications_enabled';
 
   // Control Settings
-  static const int controlUpdateInterval = 100; // milliseconds
+  static const int controlUpdateInterval = 100;
   static const double maxSpeed = 100.0;
   static const double minSpeed = 0.0;
 
