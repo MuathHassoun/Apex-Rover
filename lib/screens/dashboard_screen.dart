@@ -5,68 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/theme.dart';
 import '../providers/robot_provider.dart';
 import '../providers/connection_provider.dart';
-import '../providers/app_mode_provider.dart';
 import '../models/robot_model.dart';
 import '../widgets/status_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
-  void _changeAppMode(
-    BuildContext context,
-    WidgetRef ref,
-    AppControlMode mode,
-  ) {
-    ref.read(appControlModeProvider.notifier).state = mode;
-
-    final connectionStatus = ref.read(connectionStatusProvider);
-    final isConnected = connectionStatus == ConnectionStatus.connected;
-
-    final commandText = mode == AppControlMode.manual ? 'SYS:MODE:MANUAL' : 'SYS:MODE:AUTO';
-
-    if (isConnected) {
-      final command = ControlCommand(
-        commandId: 'mode_${DateTime.now().millisecondsSinceEpoch}',
-        commandType: commandText,
-        parameters: const {
-          'robotId': 'robot_001',
-        },
-        timestamp: DateTime.now(),
-      );
-
-      ref.read(connectionStatusProvider.notifier).sendCommand(command);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            mode == AppControlMode.manual ? 'Manual Mode activated' : 'Automatic Mode activated',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            mode == AppControlMode.manual
-                ? 'Manual Mode selected locally. Connect to send it.'
-                : 'Automatic Mode selected locally. Connect to send it.',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final robot = ref.watch(robotProvider);
     final connectionStatus = ref.watch(connectionStatusProvider);
-    final appMode = ref.watch(appControlModeProvider);
 
     final isConnected = connectionStatus == ConnectionStatus.connected;
-    final isManual = appMode == AppControlMode.manual;
-    final isAutomatic = appMode == AppControlMode.automatic;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -94,9 +44,12 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    isConnected ? 'Robot connected successfully' : 'Robot not connected',
+                    isConnected
+                        ? 'Robot connected successfully'
+                        : 'Robot not connected',
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: isConnected ? AppColors.success : AppColors.warning,
+                      color:
+                          isConnected ? AppColors.success : AppColors.warning,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -107,16 +60,10 @@ class DashboardScreen extends ConsumerWidget {
 
           const SizedBox(height: AppSpacing.lg),
 
-          // Control Mode
-          Text(
-            'Control Mode',
-            style: AppTextStyles.heading3,
-          ),
-          const SizedBox(height: AppSpacing.md),
-
+          // Main Dashboard Info
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF0D1421), Color(0xFF1A2540)],
@@ -125,73 +72,41 @@ class DashboardScreen extends ConsumerWidget {
               ),
               borderRadius: BorderRadius.circular(AppBorderRadius.lg),
               border: Border.all(
-                color: isManual
-                    ? AppColors.success.withValues(alpha: 0.8)
-                    : Colors.orange.withValues(alpha: 0.8),
-                width: 1.5,
+                color: AppColors.primary.withValues(alpha: 0.55),
+                width: 1.4,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  blurRadius: 14,
+                ),
+              ],
             ),
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ModeChoiceButton(
-                        title: 'Manual',
-                        subtitle: 'Mobile → ESP32',
-                        icon: Icons.touch_app,
-                        isSelected: isManual,
-                        color: AppColors.success,
-                        onTap: () => _changeAppMode(
-                          context,
-                          ref,
-                          AppControlMode.manual,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: _ModeChoiceButton(
-                        title: 'Automatic',
-                        subtitle: 'Raspberry Pi → ESP32',
-                        icon: Icons.smart_toy,
-                        isSelected: isAutomatic,
-                        color: Colors.orange,
-                        onTap: () => _changeAppMode(
-                          context,
-                          ref,
-                          AppControlMode.automatic,
-                        ),
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.smart_toy,
+                  color: AppColors.primary,
+                  size: 38,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(AppBorderRadius.md),
-                  ),
-                  child: Row(
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        isManual ? Icons.gamepad : Icons.auto_mode,
-                        color: isManual ? AppColors.success : Colors.orange,
+                      Text(
+                        'Apex Rover Dashboard',
+                        style: AppTextStyles.heading3.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          isManual
-                              ? 'Manual Mode: the mobile app controls the robot through ESP32. Control page is enabled.'
-                              : 'Automatic Mode: Raspberry Pi controls the robot through ESP32. Manual Control page is blocked for safety.',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            height: 1.4,
-                          ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Monitor the robot connection and open the Control page to drive, move the camera stand, operate jacks, or use Remote Control.',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          height: 1.4,
                         ),
                       ),
                     ],
@@ -203,77 +118,77 @@ class DashboardScreen extends ConsumerWidget {
 
           const SizedBox(height: AppSpacing.lg),
 
-          // // Robot State
-          // if (robot != null) ...[
-          //   Text(
-          //     'Robot State',
-          //     style: AppTextStyles.heading3,
-          //   ),
-          //   const SizedBox(height: AppSpacing.md),
-          //   Grid(
-          //     children: [
-          //       StatusCard(
-          //         label: 'Power',
-          //         value: robot.robotState.isPoweredOn ? 'ON' : 'OFF',
-          //         status: robot.robotState.isPoweredOn,
-          //       ),
-          //       StatusCard(
-          //         label: 'Charging',
-          //         value: robot.robotState.isCharging ? 'Yes' : 'No',
-          //         status: robot.robotState.isCharging,
-          //       ),
-          //       StatusCard(
-          //         label: 'Mode',
-          //         value: isManual ? 'MANUAL' : 'AUTO',
-          //         status: true,
-          //       ),
-          //       StatusCard(
-          //         label: 'Type',
-          //         value: robot.robotState.robotType,
-          //         status: true,
-          //       ),
-          //     ],
-          //   ),
-          //   const SizedBox(height: AppSpacing.lg),
-          //   Center(
-          //     child: Text(
-          //       'Last Update: ${_formatTime(robot.lastSync)}',
-          //       style: AppTextStyles.caption.copyWith(
-          //         color: Colors.grey,
-          //       ),
-          //     ),
-          //   ),
-          // ] else
-          //   Center(
-          //     child: Padding(
-          //       padding: const EdgeInsets.all(AppSpacing.xl),
-          //       child: Column(
-          //         mainAxisAlignment: MainAxisAlignment.center,
-          //         children: [
-          //           Icon(
-          //             Icons.cloud_off,
-          //             size: 64,
-          //             color: Colors.grey[400],
-          //           ),
-          //           const SizedBox(height: AppSpacing.lg),
-          //           Text(
-          //             'No Robot Connected',
-          //             style: AppTextStyles.heading3.copyWith(
-          //               color: Colors.grey[600],
-          //             ),
-          //           ),
-          //           const SizedBox(height: AppSpacing.sm),
-          //           Text(
-          //             'Connect to a robot from the Connection page',
-          //             style: AppTextStyles.bodySmall.copyWith(
-          //               color: Colors.grey[500],
-          //             ),
-          //             textAlign: TextAlign.center,
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
+          // Robot State
+          if (robot != null) ...[
+            Text(
+              'Robot State',
+              style: AppTextStyles.heading3,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Grid(
+              children: [
+                StatusCard(
+                  label: 'Power',
+                  value: robot.robotState.isPoweredOn ? 'ON' : 'OFF',
+                  status: robot.robotState.isPoweredOn,
+                ),
+                StatusCard(
+                  label: 'Charging',
+                  value: robot.robotState.isCharging ? 'Yes' : 'No',
+                  status: robot.robotState.isCharging,
+                ),
+                StatusCard(
+                  label: 'Type',
+                  value: robot.robotState.robotType,
+                  status: true,
+                ),
+                StatusCard(
+                  label: 'Connection',
+                  value: isConnected ? 'ONLINE' : 'OFFLINE',
+                  status: isConnected,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Center(
+              child: Text(
+                'Last Update: ${_formatTime(robot.lastSync)}',
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ] else
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.cloud_off,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      'No Robot Connected',
+                      style: AppTextStyles.heading3.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Connect to the robot from the Connection page',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.grey[500],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -292,76 +207,6 @@ class DashboardScreen extends ConsumerWidget {
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
-  }
-}
-
-class _ModeChoiceButton extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ModeChoiceButton({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppBorderRadius.md),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.md,
-          horizontal: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? color : Colors.white.withValues(alpha: 0.25),
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : color,
-              size: 30,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : Colors.white.withValues(alpha: 0.65),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
