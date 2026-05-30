@@ -1,15 +1,25 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/theme.dart';
-import '../providers/robot_provider.dart';
-import '../providers/connection_provider.dart';
 import '../models/robot_model.dart';
-import '../widgets/status_card.dart';
+import '../providers/connection_provider.dart';
+import '../providers/robot_provider.dart';
+
+import 'connection_screen.dart';
+import 'control_screen.dart';
+import 'remote_control_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({Key? key}) : super(key: key);
+
+  static const Color _bgColor = Color(0xFF020712);
+  static const Color _panelColor = Color(0xFF07111F);
+  static const Color _panelColor2 = Color(0xFF0D1B2E);
+  static const Color _borderColor = Color(0xFF1E3858);
+  static const Color _cyanColor = Color(0xFF00B4FF);
+  static const Color _textColor = Colors.white;
+  static const Color _mutedColor = Color(0xFF9AA8BA);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,178 +27,685 @@ class DashboardScreen extends ConsumerWidget {
     final connectionStatus = ref.watch(connectionStatusProvider);
 
     final isConnected = connectionStatus == ConnectionStatus.connected;
+    final isConnecting = connectionStatus == ConnectionStatus.connecting;
 
-    return SingleChildScrollView(
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _bgColor,
+            _panelColor,
+            Color(0xFF0B1626),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _connectionStatusCard(isConnected, isConnecting),
+            const SizedBox(height: AppSpacing.lg),
+            _heroDashboardCard(context, isConnected),
+            const SizedBox(height: AppSpacing.lg),
+            _quickActionCards(context),
+            const SizedBox(height: AppSpacing.lg),
+            _systemOverviewPanel(robot, isConnected),
+            const SizedBox(height: AppSpacing.lg),
+            _architecturePanel(),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _connectionStatusCard(bool isConnected, bool isConnecting) {
+    final Color statusColor = isConnected
+        ? Colors.greenAccent
+        : isConnecting
+            ? Colors.orangeAccent
+            : Colors.redAccent;
+
+    final IconData statusIcon = isConnected
+        ? Icons.check_circle
+        : isConnecting
+            ? Icons.sync
+            : Icons.warning_rounded;
+
+    final String title = isConnected
+        ? 'Robot connected successfully'
+        : isConnecting
+            ? 'Connecting to robot...'
+            : 'Robot not connected';
+
+    final String subtitle = isConnected
+        ? 'ESP32 WebSocket link is active'
+        : isConnecting
+            ? 'Please wait while the app connects'
+            : 'Open Connect page and connect to ESP32';
+
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            statusColor.withValues(alpha: 0.18),
+            _panelColor,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.70),
+          width: 1.4,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: statusColor.withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          // Connection Status Alert
           Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: isConnected
-                  ? AppColors.success.withValues(alpha: 0.1)
-                  : AppColors.warning.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              color: statusColor.withValues(alpha: 0.13),
               border: Border.all(
-                color: isConnected ? AppColors.success : AppColors.warning,
+                color: statusColor.withValues(alpha: 0.45),
               ),
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
             ),
-            child: Row(
+            child: Icon(
+              statusIcon,
+              color: statusColor,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  isConnected ? Icons.check_circle : Icons.warning,
-                  color: isConnected ? AppColors.success : AppColors.warning,
+                Text(
+                  title,
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: _textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    isConnected
-                        ? 'Robot connected successfully'
-                        : 'Robot not connected',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color:
-                          isConnected ? AppColors.success : AppColors.warning,
-                      fontWeight: FontWeight.bold,
-                    ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: _mutedColor,
+                    height: 1.3,
                   ),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: AppSpacing.lg),
-
-          // Main Dashboard Info
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0D1421), Color(0xFF1A2540)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+              color: statusColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.55),
-                width: 1.4,
+                color: statusColor.withValues(alpha: 0.38),
+              ),
+            ),
+            child: Text(
+              isConnected
+                  ? 'ONLINE'
+                  : isConnecting
+                      ? 'WAIT'
+                      : 'OFFLINE',
+              style: TextStyle(
+                color: statusColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _heroDashboardCard(BuildContext context, bool isConnected) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF06111F), Color(0xFF12395A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: _cyanColor.withValues(alpha: 0.70),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _cyanColor.withValues(alpha: 0.20),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _cyanColor.withValues(alpha: 0.13),
+              border: Border.all(
+                color: _cyanColor.withValues(alpha: 0.75),
+                width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  blurRadius: 14,
+                  color: _cyanColor.withValues(alpha: 0.18),
+                  blurRadius: 20,
                 ),
               ],
             ),
-            child: Row(
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: _cyanColor,
+              size: 39,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.smart_toy,
-                  color: AppColors.primary,
-                  size: 38,
+                Text(
+                  'Apex Rover Dashboard',
+                  style: AppTextStyles.heading3.copyWith(
+                    color: _textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Apex Rover Dashboard',
-                        style: AppTextStyles.heading3.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        'Monitor the robot connection and open the Control page to drive, move the camera stand, operate jacks, or use Remote Control.',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 6),
+                Text(
+                  'Monitor connection state, open manual controls, and access camera-based remote operation.',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.76),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 11),
+                Wrap(
+                  spacing: 7,
+                  runSpacing: 7,
+                  children: [
+                    _chip('Manual'),
+                    _chip('ESP32'),
+                    _chip('Camera'),
+                    _chip('Sensors'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _quickActionCards(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _actionCard(
+            title: 'Control',
+            subtitle: 'Movement & tools',
+            icon: Icons.gamepad_rounded,
+            color: _cyanColor,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ControlScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: _actionCard(
+            title: 'Remote',
+            subtitle: 'Camera view',
+            icon: Icons.screen_rotation_rounded,
+            color: Colors.greenAccent,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => const RemoteControlScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [_panelColor, _panelColor2],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withValues(alpha: 0.35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.10),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: _textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: _mutedColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _systemOverviewPanel(dynamic robot, bool isConnected) {
+    return _panel(
+      title: 'System Overview',
+      subtitle: 'Current robot control architecture',
+      icon: Icons.memory_rounded,
+      child: Column(
+        children: [
+          _overviewTile(
+            title: 'Control Mode',
+            value: 'Manual',
+            icon: Icons.touch_app_rounded,
+            color: _cyanColor,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _overviewTile(
+            title: 'Connection',
+            value: isConnected ? 'Online' : 'Offline',
+            icon: isConnected ? Icons.link_rounded : Icons.link_off_rounded,
+            color: isConnected ? Colors.greenAccent : Colors.redAccent,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _overviewTile(
+            title: 'Command Path',
+            value: 'Mobile → ESP32 → Controllers',
+            icon: Icons.route_rounded,
+            color: Colors.orangeAccent,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _overviewTile(
+            title: 'Camera / Sensors',
+            value: 'Raspberry Pi Bridge',
+            icon: Icons.sensors_rounded,
+            color: Colors.purpleAccent,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _overviewTile({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: color.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 43,
+            height: 43,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.13),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              title,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: _mutedColor,
+              ),
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: _textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _architecturePanel() {
+    return _panel(
+      title: 'Communication Flow',
+      subtitle: 'How Apex Rover components communicate',
+      icon: Icons.account_tree_rounded,
+      child: Column(
+        children: [
+          _flowStep(
+            number: '1',
+            title: 'Mobile App',
+            subtitle: 'Sends manual commands',
+            color: _cyanColor,
+          ),
+          _flowConnector(),
+          _flowStep(
+            number: '2',
+            title: 'ESP32',
+            subtitle: 'WebSocket bridge',
+            color: Colors.greenAccent,
+          ),
+          _flowConnector(),
+          _flowStep(
+            number: '3',
+            title: 'Mega / UNO',
+            subtitle: 'Motors, jacks, camera stand, arm',
+            color: Colors.orangeAccent,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _infoNote(
+            'Raspberry Pi is used for camera streaming and sensor relay only. It does not drive the robot autonomously.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _flowStep({
+    required String number,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: color.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.18),
+              border: Border.all(
+                color: color.withValues(alpha: 0.40),
+              ),
+            ),
+            child: Text(
+              number,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: _textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: _mutedColor,
                   ),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: AppSpacing.lg),
+  Widget _flowConnector() {
+    return Container(
+      width: 2,
+      height: 18,
+      color: _borderColor.withValues(alpha: 0.9),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+    );
+  }
 
-          // Robot State
-          if (robot != null) ...[
-            Text(
-              'Robot State',
-              style: AppTextStyles.heading3,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Grid(
-              children: [
-                StatusCard(
-                  label: 'Power',
-                  value: robot.robotState.isPoweredOn ? 'ON' : 'OFF',
-                  status: robot.robotState.isPoweredOn,
-                ),
-                StatusCard(
-                  label: 'Charging',
-                  value: robot.robotState.isCharging ? 'Yes' : 'No',
-                  status: robot.robotState.isCharging,
-                ),
-                StatusCard(
-                  label: 'Type',
-                  value: robot.robotState.robotType,
-                  status: true,
-                ),
-                StatusCard(
-                  label: 'Connection',
-                  value: isConnected ? 'ONLINE' : 'OFFLINE',
-                  status: isConnected,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Center(
-              child: Text(
-                'Last Update: ${_formatTime(robot.lastSync)}',
-                style: AppTextStyles.caption.copyWith(
-                  color: Colors.grey,
-                ),
+  Widget _infoNote(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: _cyanColor.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: _cyanColor.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            color: _cyanColor,
+            size: 22,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: _mutedColor,
+                height: 1.35,
               ),
             ),
-          ] else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _panel({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_panelColor, _panelColor2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _borderColor.withValues(alpha: 0.9),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: _cyanColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(
+                    color: _cyanColor.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Icon(icon, color: _cyanColor, size: 22),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.cloud_off,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
                     Text(
-                      'No Robot Connected',
+                      title,
                       style: AppTextStyles.heading3.copyWith(
-                        color: Colors.grey[600],
+                        color: _textColor,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: 2),
                     Text(
-                      'Connect to the robot from the Connection page',
+                      subtitle,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.grey[500],
+                        color: _mutedColor,
+                        height: 1.25,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          child,
         ],
       ),
     );
@@ -207,26 +724,5 @@ class DashboardScreen extends ConsumerWidget {
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
-  }
-}
-
-class Grid extends StatelessWidget {
-  final List<Widget> children;
-
-  const Grid({
-    Key? key,
-    required this.children,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      children: children,
-    );
   }
 }
