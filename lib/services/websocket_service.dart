@@ -1,5 +1,4 @@
 
-
 import 'package:logger/logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -19,7 +18,6 @@ class WebSocketService {
       _logger.i('WebSocket connected');
 
       _setupListening();
-
       return true;
     } catch (e) {
       _logger.e('WebSocket connection error: $e');
@@ -81,25 +79,11 @@ class WebSocketService {
   }
 
   String _mapCommandType(String commandType) {
-    if (commandType.startsWith('SYS:')) {
-      return commandType;
-    }
-
-    if (commandType.startsWith('MODE:')) {
-      return commandType;
-    }
-
-    if (commandType.startsWith('ARM:')) {
-      return commandType;
-    }
-
-    if (commandType.startsWith('JACK:')) {
-      return commandType;
-    }
-
-    if (commandType.startsWith('CAM:')) {
-      return commandType;
-    }
+    if (commandType.startsWith('SYS:')) return commandType;
+    if (commandType.startsWith('MODE:')) return commandType;
+    if (commandType.startsWith('ARM:')) return commandType;
+    if (commandType.startsWith('JACK:')) return commandType;
+    if (commandType.startsWith('CAM:')) return commandType;
 
     switch (commandType) {
       case 'move_forward':
@@ -113,6 +97,7 @@ class WebSocketService {
       case 'stop':
         return 'STOP';
 
+      // For Drive Mode shortcuts
       case 'forward':
         return 'FORWARD';
       case 'backward':
@@ -145,7 +130,8 @@ class WebSocketService {
     try {
       if (_isConnected) {
         _channel.sink.add('STOP');
-        _channel.sink.add('JACK:ALL:STOP');
+        _channel.sink.add('JACK:FRONT:STOP');
+        _channel.sink.add('JACK:REAR:STOP');
         _channel.sink.add('CAM:STOP');
         await Future.delayed(const Duration(milliseconds: 100));
       }
