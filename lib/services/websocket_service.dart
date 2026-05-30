@@ -1,4 +1,5 @@
 
+
 import 'package:logger/logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -56,9 +57,9 @@ class WebSocketService {
       _channel.sink.add(message);
       _logger.i('Command sent via WebSocket: $message');
 
-      // Do not send SPEED with system mode, arm, jack, or camera commands
-      if (message.startsWith('MODE:') ||
-          message.startsWith('SYS:') ||
+      // Do not send SPEED with system, mode, arm, jack, or camera commands.
+      if (message.startsWith('SYS:') ||
+          message.startsWith('MODE:') ||
           message.startsWith('ARM:') ||
           message.startsWith('JACK:') ||
           message.startsWith('CAM:')) {
@@ -80,11 +81,11 @@ class WebSocketService {
   }
 
   String _mapCommandType(String commandType) {
-    if (commandType.startsWith('MODE:')) {
+    if (commandType.startsWith('SYS:')) {
       return commandType;
     }
 
-    if (commandType.startsWith('SYS:')) {
+    if (commandType.startsWith('MODE:')) {
       return commandType;
     }
 
@@ -112,7 +113,6 @@ class WebSocketService {
       case 'stop':
         return 'STOP';
 
-      // For Drive Mode shortcuts
       case 'forward':
         return 'FORWARD';
       case 'backward':
@@ -145,8 +145,7 @@ class WebSocketService {
     try {
       if (_isConnected) {
         _channel.sink.add('STOP');
-        _channel.sink.add('JACK:FRONT:STOP');
-        _channel.sink.add('JACK:REAR:STOP');
+        _channel.sink.add('JACK:ALL:STOP');
         _channel.sink.add('CAM:STOP');
         await Future.delayed(const Duration(milliseconds: 100));
       }
