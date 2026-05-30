@@ -1,13 +1,15 @@
-
 import 'package:flutter/material.dart';
-import 'camera_control_screen.dart';
-import 'arm_control_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+
 import '../config/theme.dart';
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
+
 import 'drive_mode_screen.dart';
-import 'package:uuid/uuid.dart';
+import 'arm_control_screen.dart';
+import 'camera_control_screen.dart';
+import 'remote_control_screen.dart';
 
 class ControlScreen extends ConsumerStatefulWidget {
   const ControlScreen({Key? key}) : super(key: key);
@@ -263,6 +265,19 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                 },
                 icon: const Icon(Icons.videocam),
                 label: const Text('Camera Control'),
+              ),
+
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (_) => const RemoteControlScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.screen_rotation),
+                label: const Text('Remote Control'),
               ),
             ],
           ),
