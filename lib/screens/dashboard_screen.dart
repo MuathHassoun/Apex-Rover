@@ -21,9 +21,7 @@ class DashboardScreen extends ConsumerWidget {
     final connectionStatus = ref.read(connectionStatusProvider);
     final isConnected = connectionStatus == ConnectionStatus.connected;
 
-    final commandText = mode == AppControlMode.manual
-        ? 'SYS:MODE:MANUAL'
-        : 'SYS:MODE:AUTO';
+    final commandText = mode == AppControlMode.manual ? 'SYS:MODE:MANUAL' : 'SYS:MODE:AUTO';
 
     if (isConnected) {
       final command = ControlCommand(
@@ -40,9 +38,7 @@ class DashboardScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            mode == AppControlMode.manual
-                ? 'Manual Mode activated'
-                : 'Automatic Mode activated',
+            mode == AppControlMode.manual ? 'Manual Mode activated' : 'Automatic Mode activated',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -97,9 +93,7 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    isConnected
-                        ? 'Robot connected successfully'
-                        : 'Robot not connected',
+                    isConnected ? 'Robot connected successfully' : 'Robot not connected',
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: isConnected ? AppColors.success : AppColors.warning,
                       fontWeight: FontWeight.bold,
@@ -159,7 +153,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _ModeChoiceButton(
                         title: 'Automatic',
-                        subtitle: 'Raspberry Pi',
+                        subtitle: 'Raspberry Pi → ESP32',
                         icon: Icons.smart_toy,
                         isSelected: isAutomatic,
                         color: Colors.orange,
@@ -192,7 +186,7 @@ class DashboardScreen extends ConsumerWidget {
                         child: Text(
                           isManual
                               ? 'Manual Mode: the mobile app controls the robot through ESP32. Control page is enabled.'
-                              : 'Automatic Mode: Raspberry Pi controls the robot. Manual Control page is blocked for safety.',
+                              : 'Automatic Mode: Raspberry Pi controls the robot through ESP32. Manual Control page is blocked for safety.',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: Colors.white.withValues(alpha: 0.85),
                             height: 1.4,
@@ -208,78 +202,77 @@ class DashboardScreen extends ConsumerWidget {
 
           const SizedBox(height: AppSpacing.lg),
 
-          // Robot State
-          if (robot != null) ...[
-            Text(
-              'Robot State',
-              style: AppTextStyles.heading3,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Grid(
-              children: [
-                StatusCard(
-                  label: 'Power',
-                  value: robot.robotState.isPoweredOn ? 'ON' : 'OFF',
-                  status: robot.robotState.isPoweredOn,
-                ),
-                StatusCard(
-                  label: 'Charging',
-                  value: robot.robotState.isCharging ? 'Yes' : 'No',
-                  status: robot.robotState.isCharging,
-                ),
-                StatusCard(
-                  label: 'Mode',
-                  value: isManual ? 'MANUAL' : 'AUTO',
-                  status: true,
-                ),
-                StatusCard(
-                  label: 'Type',
-                  value: robot.robotState.robotType,
-                  status: true,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            Center(
-              child: Text(
-                'Last Update: ${_formatTime(robot.lastSync)}',
-                style: AppTextStyles.caption.copyWith(
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-          ] else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cloud_off,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      'No Robot Connected',
-                      style: AppTextStyles.heading3.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Connect to a robot from the Connection page',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.grey[500],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          // // Robot State
+          // if (robot != null) ...[
+          //   Text(
+          //     'Robot State',
+          //     style: AppTextStyles.heading3,
+          //   ),
+          //   const SizedBox(height: AppSpacing.md),
+          //   Grid(
+          //     children: [
+          //       StatusCard(
+          //         label: 'Power',
+          //         value: robot.robotState.isPoweredOn ? 'ON' : 'OFF',
+          //         status: robot.robotState.isPoweredOn,
+          //       ),
+          //       StatusCard(
+          //         label: 'Charging',
+          //         value: robot.robotState.isCharging ? 'Yes' : 'No',
+          //         status: robot.robotState.isCharging,
+          //       ),
+          //       StatusCard(
+          //         label: 'Mode',
+          //         value: isManual ? 'MANUAL' : 'AUTO',
+          //         status: true,
+          //       ),
+          //       StatusCard(
+          //         label: 'Type',
+          //         value: robot.robotState.robotType,
+          //         status: true,
+          //       ),
+          //     ],
+          //   ),
+          //   const SizedBox(height: AppSpacing.lg),
+          //   Center(
+          //     child: Text(
+          //       'Last Update: ${_formatTime(robot.lastSync)}',
+          //       style: AppTextStyles.caption.copyWith(
+          //         color: Colors.grey,
+          //       ),
+          //     ),
+          //   ),
+          // ] else
+          //   Center(
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(AppSpacing.xl),
+          //       child: Column(
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Icon(
+          //             Icons.cloud_off,
+          //             size: 64,
+          //             color: Colors.grey[400],
+          //           ),
+          //           const SizedBox(height: AppSpacing.lg),
+          //           Text(
+          //             'No Robot Connected',
+          //             style: AppTextStyles.heading3.copyWith(
+          //               color: Colors.grey[600],
+          //             ),
+          //           ),
+          //           const SizedBox(height: AppSpacing.sm),
+          //           Text(
+          //             'Connect to a robot from the Connection page',
+          //             style: AppTextStyles.bodySmall.copyWith(
+          //               color: Colors.grey[500],
+          //             ),
+          //             textAlign: TextAlign.center,
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
         ],
       ),
     );
