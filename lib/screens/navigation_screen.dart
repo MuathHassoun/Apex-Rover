@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dashboard_screen.dart';
 import 'control_screen.dart';
 import 'connection_screen.dart';
+import 'sensors_screen.dart';
 import 'about_screen.dart';
 
 class NavigationScreen extends ConsumerStatefulWidget {
@@ -26,6 +27,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     ControlScreen(),
+    SensorsScreen(),
     ConnectionScreen(),
     AboutScreen(),
   ];
@@ -33,6 +35,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   final List<String> _screenTitles = const [
     'Home',
     'Control',
+    'Sensors',
     'Connect',
     'About',
   ];
@@ -40,6 +43,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   final List<String> _screenSubtitles = const [
     'Apex Rover Dashboard',
     'Manual Robot Control',
+    'Live Sensor Status',
     'ESP32 WebSocket Link',
     'Project Information',
   ];
@@ -47,6 +51,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   final List<IconData> _screenIcons = const [
     Icons.dashboard_rounded,
     Icons.gamepad_rounded,
+    Icons.sensors_rounded,
     Icons.wifi_rounded,
     Icons.info_rounded,
   ];
@@ -134,10 +139,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         child: _screens[_selectedIndex],
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+        minimum: const EdgeInsets.fromLTRB(10, 0, 10, 24),
         child: Container(
-          height: 76,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          height: 78,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [_panelColor, _panelColor2],
@@ -174,8 +179,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     curve: Curves.easeOut,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
                       color: selected ? _cyanColor.withValues(alpha: 0.14) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
@@ -188,7 +193,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       children: [
                         Icon(
                           _screenIcons[index],
-                          size: selected ? 26 : 23,
+                          size: selected ? 25 : 22,
                           color: selected ? _cyanColor : _mutedColor,
                         ),
                         const SizedBox(height: 4),
@@ -196,12 +201,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                           duration: const Duration(milliseconds: 180),
                           style: TextStyle(
                             color: selected ? _cyanColor : _mutedColor,
-                            fontSize: selected ? 11 : 10,
+                            fontSize: selected ? 10.5 : 9.5,
                             fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                           ),
                           child: Text(
                             _screenTitles[index],
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

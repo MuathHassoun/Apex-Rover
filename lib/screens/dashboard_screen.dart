@@ -6,7 +6,6 @@ import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
 import '../providers/robot_provider.dart';
 
-import 'connection_screen.dart';
 import 'control_screen.dart';
 import 'remote_control_screen.dart';
 
@@ -48,14 +47,14 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _connectionStatusCard(isConnected, isConnecting),
             const SizedBox(height: AppSpacing.lg),
-            _heroDashboardCard(context, isConnected),
+            _heroDashboardCard(),
             const SizedBox(height: AppSpacing.lg),
             _quickActionCards(context),
             const SizedBox(height: AppSpacing.lg),
             _systemOverviewPanel(robot, isConnected),
             const SizedBox(height: AppSpacing.lg),
             _architecturePanel(),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: 110),
           ],
         ),
       ),
@@ -137,6 +136,8 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Text(
                   title,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: _textColor,
                     fontWeight: FontWeight.bold,
@@ -145,6 +146,8 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: _mutedColor,
                     height: 1.3,
@@ -153,8 +156,9 @@ class DashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(30),
@@ -167,11 +171,11 @@ class DashboardScreen extends ConsumerWidget {
                   ? 'ONLINE'
                   : isConnecting
                       ? 'WAIT'
-                      : 'OFFLINE',
+                      : 'OFF',
               style: TextStyle(
                 color: statusColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
+                fontSize: 10,
               ),
             ),
           ),
@@ -180,7 +184,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _heroDashboardCard(BuildContext context, bool isConnected) {
+  Widget _heroDashboardCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -235,6 +239,8 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Apex Rover Dashboard',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.heading3.copyWith(
                     color: _textColor,
                     fontWeight: FontWeight.bold,
@@ -243,6 +249,8 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text(
                   'Monitor connection state, open manual controls, and access camera-based remote operation.',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: Colors.white.withValues(alpha: 0.76),
                     height: 1.35,
@@ -289,41 +297,82 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _quickActionCards(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _actionCard(
-            title: 'Control',
-            subtitle: 'Movement & tools',
-            icon: Icons.gamepad_rounded,
-            color: _cyanColor,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const ControlScreen(),
-                ),
-              );
-            },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool narrow = constraints.maxWidth < 390;
+
+        if (narrow) {
+          return Column(
+            children: [
+              _actionCard(
+                title: 'Control',
+                subtitle: 'Movement & tools',
+                icon: Icons.gamepad_rounded,
+                color: _cyanColor,
+                onTap: () => _openControlScreen(context),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _actionCard(
+                title: 'Remote',
+                subtitle: 'Camera view',
+                icon: Icons.screen_rotation_rounded,
+                color: Colors.greenAccent,
+                onTap: () => _openRemoteScreen(context),
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _actionCard(
+                title: 'Control',
+                subtitle: 'Movement & tools',
+                icon: Icons.gamepad_rounded,
+                color: _cyanColor,
+                onTap: () => _openControlScreen(context),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _actionCard(
+                title: 'Remote',
+                subtitle: 'Camera view',
+                icon: Icons.screen_rotation_rounded,
+                color: Colors.greenAccent,
+                onTap: () => _openRemoteScreen(context),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openControlScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: _bgColor,
+          appBar: AppBar(
+            backgroundColor: _bgColor,
+            foregroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            title: const Text('Control'),
           ),
+          body: const ControlScreen(),
         ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: _actionCard(
-            title: 'Remote',
-            subtitle: 'Camera view',
-            icon: Icons.screen_rotation_rounded,
-            color: Colors.greenAccent,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) => const RemoteControlScreen(),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+
+  void _openRemoteScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const RemoteControlScreen(),
+      ),
     );
   }
 
@@ -334,10 +383,10 @@ class DashboardScreen extends ConsumerWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -360,8 +409,8 @@ class DashboardScreen extends ConsumerWidget {
         child: Row(
           children: [
             Container(
-              width: 45,
-              height: 45,
+              width: 43,
+              height: 43,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(15),
@@ -372,7 +421,7 @@ class DashboardScreen extends ConsumerWidget {
               child: Icon(
                 icon,
                 color: color,
-                size: 26,
+                size: 25,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -383,6 +432,7 @@ class DashboardScreen extends ConsumerWidget {
                   Text(
                     title,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: _textColor,
                       fontWeight: FontWeight.bold,
@@ -392,6 +442,7 @@ class DashboardScreen extends ConsumerWidget {
                   Text(
                     subtitle,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: _mutedColor,
                     ),
@@ -428,14 +479,14 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           _overviewTile(
             title: 'Command Path',
-            value: 'Mobile → ESP32 → Controllers',
+            value: 'Mobile → ESP32',
             icon: Icons.route_rounded,
             color: Colors.orangeAccent,
           ),
           const SizedBox(height: AppSpacing.sm),
           _overviewTile(
-            title: 'Camera / Sensors',
-            value: 'Raspberry Pi Bridge',
+            title: 'Sensors',
+            value: 'Raspberry Bridge',
             icon: Icons.sensors_rounded,
             color: Colors.purpleAccent,
           ),
@@ -474,15 +525,19 @@ class DashboardScreen extends ConsumerWidget {
           Expanded(
             child: Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: _mutedColor,
               ),
             ),
           ),
+          const SizedBox(width: 8),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.labelLarge.copyWith(
                 color: _textColor,
@@ -519,7 +574,7 @@ class DashboardScreen extends ConsumerWidget {
           _flowStep(
             number: '3',
             title: 'Mega / UNO',
-            subtitle: 'Motors, jacks, camera stand, arm',
+            subtitle: 'Motors and camera stand',
             color: Colors.orangeAccent,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -538,6 +593,7 @@ class DashboardScreen extends ConsumerWidget {
     required Color color,
   }) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
@@ -574,6 +630,8 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Text(
                   title,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: _textColor,
                     fontWeight: FontWeight.bold,
@@ -582,6 +640,8 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: _mutedColor,
                   ),
@@ -616,7 +676,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline_rounded,
             color: _cyanColor,
             size: 22,
@@ -625,6 +685,8 @@ class DashboardScreen extends ConsumerWidget {
           Expanded(
             child: Text(
               text,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodySmall.copyWith(
                 color: _mutedColor,
                 height: 1.35,
@@ -687,6 +749,8 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     Text(
                       title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.heading3.copyWith(
                         color: _textColor,
                       ),
@@ -694,6 +758,8 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: _mutedColor,
                         height: 1.25,
@@ -709,20 +775,5 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inSeconds < 60) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
   }
 }
