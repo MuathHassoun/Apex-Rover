@@ -18,6 +18,19 @@ class AppConstants {
   static const String webSocketUrl = 'ws://192.168.4.1:81';
   static const Duration webSocketTimeout = Duration(seconds: 30);
 
+  // Raspberry Pi Mode Manager
+  // Raspberry should be connected to the ESP32 network.
+  // Raspberry expected static IP: 192.168.4.2
+  // main_startup.py runs on port 5050.
+  static const String raspberryBaseUrl = 'http://192.168.4.2:5050';
+  static const Duration raspberryRequestTimeout = Duration(seconds: 5);
+
+  static const String raspberryStatusUrl = '$raspberryBaseUrl/status';
+  static const String raspberryManualModeUrl = '$raspberryBaseUrl/mode/manual';
+  static const String raspberryAutoModeUrl = '$raspberryBaseUrl/mode/auto';
+  static const String raspberryStopModeUrl = '$raspberryBaseUrl/mode/stop';
+  static const String raspberryRobotStopUrl = '$raspberryBaseUrl/robot/stop';
+
   // MQTT Topics
   static const String mqttTopicRobotStatus = 'robot/status';
   static const String mqttTopicSensors = 'robot/sensors/#';
@@ -46,7 +59,8 @@ class AppConstants {
   static const Duration pollIntervalSystemStatus = Duration(seconds: 10);
 
   // Error Messages
-  static const String errorConnectionFailed = 'Connection failed. Please check your network.';
+  static const String errorConnectionFailed =
+      'Connection failed. Please check your network.';
   static const String errorTimeout = 'Request timed out. Please try again.';
   static const String errorInvalidData = 'Invalid data received from robot.';
   static const String errorDatabaseError = 'Database error occurred.';
@@ -79,6 +93,11 @@ class RobotModes {
   static const String recording = 'recording';
   static const String playback = 'playback';
   static const String error = 'error';
+}
+
+class OperationModes {
+  static const String manual = 'MANUAL';
+  static const String auto = 'AUTO';
 }
 
 class SystemHealthStatus {
