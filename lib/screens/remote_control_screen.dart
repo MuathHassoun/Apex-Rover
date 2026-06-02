@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -36,7 +35,8 @@ class RemoteControlScreen extends ConsumerStatefulWidget {
   const RemoteControlScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RemoteControlScreen> createState() => _RemoteControlScreenState();
+  ConsumerState<RemoteControlScreen> createState() =>
+      _RemoteControlScreenState();
 }
 
 class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
@@ -54,7 +54,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   late Animation<double> _pulseAnim;
 
   String get _cameraSnapshotUrl {
-    final endpoint = _mode == RemoteControlMode.arm ? 'arm_snapshot' : 'front_snapshot';
+    final endpoint =
+        _mode == RemoteControlMode.arm ? 'arm_snapshot' : 'front_snapshot';
 
     return '$raspberryBaseUrl/$endpoint?t=$_cameraFrameTick';
   }
@@ -75,16 +76,18 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    _pulseAnim = Tween<double>(begin: 0.45, end: 1.0).animate(_pulseController);
+    _pulseAnim = Tween<double>(begin: 0.45, end: 1.0).animate(
+      _pulseController,
+    );
 
     _cameraRefreshTimer = Timer.periodic(
       const Duration(milliseconds: 250),
       (_) {
-        if (mounted) {
-          setState(() {
-            _cameraFrameTick++;
-          });
-        }
+        if (!mounted) return;
+
+        setState(() {
+          _cameraFrameTick++;
+        });
       },
     );
   }
@@ -96,6 +99,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
     _sendCommand('STOP', showMessage: false);
     _sendCommand('CAM:STOP', showMessage: false);
+    _sendCommand('ARM:STOP', showMessage: false);
 
     _restorePortraitMode();
 
@@ -112,7 +116,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   }
 
   void _sendCommand(String commandType, {bool showMessage = true}) {
-    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     if (!isConnected) {
       if (showMessage && mounted) {
@@ -150,11 +155,11 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
     ref.read(connectionStatusProvider.notifier).sendCommand(command);
 
-    if (mounted) {
-      setState(() {
-        _lastCommand = commandType;
-      });
-    }
+    if (!mounted) return;
+
+    setState(() {
+      _lastCommand = commandType;
+    });
   }
 
   void _showSensorAlertIfNeeded(SensorStatus previous, SensorStatus next) {
@@ -183,11 +188,14 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                isDanger ? 'DANGER — Robot may fall' : 'WARNING — Robot is unstable',
+                isDanger
+                    ? 'DANGER — Robot may fall'
+                    : 'WARNING — Robot is unstable',
               ),
             ],
           ),
-          backgroundColor: isDanger ? _T.red.withOpacity(0.9) : _T.orange.withOpacity(0.9),
+          backgroundColor:
+              isDanger ? _T.red.withOpacity(0.9) : _T.orange.withOpacity(0.9),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
@@ -305,7 +313,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: selected ? _T.cyan.withOpacity(0.14) : Colors.white.withOpacity(0.05),
+        color: selected
+            ? _T.cyan.withOpacity(0.14)
+            : Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: selected ? _T.cyan.withOpacity(0.55) : Colors.white12,
@@ -336,7 +346,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           subtitle,
           style: const TextStyle(color: _T.textSecondary),
         ),
-        trailing: selected ? const Icon(Icons.check_circle, color: _T.cyan) : null,
+        trailing: selected
+            ? const Icon(Icons.check_circle, color: _T.cyan)
+            : null,
       ),
     );
   }
@@ -387,7 +399,10 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                 return Opacity(
                   opacity: _pulseAnim.value,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: _T.red.withOpacity(0.75),
                       borderRadius: BorderRadius.circular(6),
@@ -418,7 +433,11 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.videocam_off_rounded, color: _T.red.withOpacity(0.9), size: 56),
+            Icon(
+              Icons.videocam_off_rounded,
+              color: _T.red.withOpacity(0.9),
+              size: 56,
+            ),
             const SizedBox(height: 10),
             Text(
               '$title Not Available',
@@ -469,11 +488,15 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     double size = 58,
     bool sendOnTapDown = true,
   }) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     return GestureDetector(
-      onTapDown: isConnected && sendOnTapDown ? (_) => _sendCommand(command) : null,
-      onTap: isConnected && !sendOnTapDown ? () => _sendCommand(command) : null,
+      onTapDown:
+          isConnected && sendOnTapDown ? (_) => _sendCommand(command) : null,
+      onTap: isConnected && !sendOnTapDown
+          ? () => _sendCommand(command)
+          : null,
       child: Container(
         width: size,
         height: size,
@@ -481,7 +504,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           color: Colors.black.withOpacity(0.16),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isConnected ? color.withOpacity(0.50) : Colors.white.withOpacity(0.14),
+            color: isConnected
+                ? color.withOpacity(0.50)
+                : Colors.white.withOpacity(0.14),
             width: 1.1,
           ),
         ),
@@ -515,7 +540,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     required String command,
     double size = 62,
   }) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     return GestureDetector(
       onTapDown: isConnected ? (_) => _sendCommand(command) : null,
@@ -731,7 +757,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.rotate_left_rounded,
               label: 'BASE L',
-              command: 'ARM:BASE:LEFT',
+              command: 'ARM:BASE:RIGHT',
               color: _T.purple,
               size: 58,
             ),
@@ -739,7 +765,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.rotate_right_rounded,
               label: 'BASE R',
-              command: 'ARM:BASE:RIGHT',
+              command: 'ARM:BASE:LEFT',
               color: _T.purple,
               size: 58,
             ),
@@ -756,7 +782,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.arrow_upward_rounded,
               label: 'SH UP',
-              command: 'ARM:SHOULDER:UP',
+              command: 'ARM:SHOULDER:DOWN',
               color: _T.amber,
               size: 58,
             ),
@@ -764,7 +790,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.arrow_downward_rounded,
               label: 'SH DN',
-              command: 'ARM:SHOULDER:DOWN',
+              command: 'ARM:SHOULDER:UP',
               color: _T.amber,
               size: 58,
             ),
@@ -775,131 +801,111 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   }
 
   Widget _armRightControlsOverlay() {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      _overlayLabel('ELBOW'),
-      const SizedBox(height: 7),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _glassButton(
-            icon: Icons.north_rounded,
-            label: 'ELB UP',
-            command: 'ARM:ELBOW:UP',
-            color: _T.amber,
-            size: 58,
-          ),
-          const SizedBox(width: 8),
-          _glassButton(
-            icon: Icons.south_rounded,
-            label: 'ELB DN',
-            command: 'ARM:ELBOW:DOWN',
-            color: _T.amber,
-            size: 58,
-          ),
-        ],
-      ),
-
-      const SizedBox(height: 14),
-
-      _overlayLabel('WRIST'),
-      const SizedBox(height: 7),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _glassButton(
-            icon: Icons.keyboard_arrow_up_rounded,
-            label: 'WR UP',
-            command: 'ARM:WRIST:UP',
-            color: _T.blue,
-            size: 56,
-          ),
-          const SizedBox(width: 8),
-          _glassButton(
-            icon: Icons.keyboard_arrow_down_rounded,
-            label: 'WR DN',
-            command: 'ARM:WRIST:DOWN',
-            color: _T.blue,
-            size: 56,
-          ),
-        ],
-      ),
-
-      const SizedBox(height: 14),
-
-      _overlayLabel('GRIPPER'),
-      const SizedBox(height: 7),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _glassButton(
-            icon: Icons.pan_tool_alt_rounded,
-            label: 'OPEN',
-            command: 'ARM:GRIPPER:OPEN',
-            color: _T.green,
-            size: 56,
-          ),
-          const SizedBox(width: 8),
-          _glassButton(
-            icon: Icons.back_hand_rounded,
-            label: 'CLOSE',
-            command: 'ARM:GRIPPER:CLOSE',
-            color: _T.green,
-            size: 56,
-          ),
-        ],
-      ),
-
-      const SizedBox(height: 14),
-
-      _overlayLabel('AUX'),
-      const SizedBox(height: 7),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _glassButton(
-            icon: Icons.keyboard_double_arrow_up_rounded,
-            label: 'AUX UP',
-            command: 'ARM:AUX:UP',
-            color: _T.purple,
-            size: 56,
-          ),
-          const SizedBox(width: 8),
-          _glassButton(
-            icon: Icons.keyboard_double_arrow_down_rounded,
-            label: 'AUX DN',
-            command: 'ARM:AUX:DOWN',
-            color: _T.purple,
-            size: 56,
-          ),
-        ],
-      ),
-
-      const SizedBox(height: 10),
-
-      _glassButton(
-        icon: Icons.home_rounded,
-        label: 'HOME',
-        command: 'ARM:HOME',
-        color: _T.textSecondary,
-        size: 56,
-      ),
-    ],
-  );
-}
-
-
-
-
-
-
-
-
-
-
-
-
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _overlayLabel('ELBOW'),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.north_rounded,
+              label: 'ELB UP',
+              command: 'ARM:ELBOW:DOWN',
+              color: _T.amber,
+              size: 58,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.south_rounded,
+              label: 'ELB DN',
+              command: 'ARM:ELBOW:UP',
+              color: _T.amber,
+              size: 58,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _overlayLabel('WRIST'),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.keyboard_arrow_up_rounded,
+              label: 'WR UP',
+              command: 'ARM:WRIST:DOWN',
+              color: _T.blue,
+              size: 56,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.keyboard_arrow_down_rounded,
+              label: 'WR DN',
+              command: 'ARM:WRIST:UP',
+              color: _T.blue,
+              size: 56,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _overlayLabel('GRIPPER'),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.pan_tool_alt_rounded,
+              label: 'OPEN',
+              command: 'ARM:GRIPPER:CLOSE',
+              color: _T.green,
+              size: 56,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.back_hand_rounded,
+              label: 'CLOSE',
+              command: 'ARM:GRIPPER:OPEN',
+              color: _T.green,
+              size: 56,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _overlayLabel('AUX'),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.keyboard_arrow_left_rounded,
+              label: 'AUX L',
+              command: 'ARM:AUX:DOWN',
+              color: _T.purple,
+              size: 56,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.keyboard_arrow_right_rounded,
+              label: 'AUX R',
+              command: 'ARM:AUX:UP',
+              color: _T.purple,
+              size: 56,
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _glassButton(
+          icon: Icons.home_rounded,
+          label: 'HOME',
+          command: 'ARM:HOME',
+          color: _T.textSecondary,
+          size: 56,
+        ),
+      ],
+    );
+  }
 
   Widget _overlayLabel(String text) {
     return Text(
@@ -917,8 +923,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     required CrossAxisAlignment alignment,
     required Widget child,
   }) {
-    final align =
-        alignment == CrossAxisAlignment.start ? Alignment.centerLeft : Alignment.centerRight;
+    final align = alignment == CrossAxisAlignment.start
+        ? Alignment.centerLeft
+        : Alignment.centerRight;
 
     return SizedBox(
       width: 260,
@@ -975,13 +982,16 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           ),
           _sensorPlainItem(
             icon: Icons.swap_vert_rounded,
-            label:
-                sensors.pitch == null ? 'Pitch --' : 'Pitch ${sensors.pitch!.toStringAsFixed(1)}°',
+            label: sensors.pitch == null
+                ? 'Pitch --'
+                : 'Pitch ${sensors.pitch!.toStringAsFixed(1)}°',
             color: _T.cyan,
           ),
           _sensorPlainItem(
             icon: Icons.screen_rotation_alt_rounded,
-            label: sensors.roll == null ? 'Roll --' : 'Roll ${sensors.roll!.toStringAsFixed(1)}°',
+            label: sensors.roll == null
+                ? 'Roll --'
+                : 'Roll ${sensors.roll!.toStringAsFixed(1)}°',
             color: _T.cyan,
           ),
           _sensorPlainItem(
@@ -1013,11 +1023,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 13,
-          ),
+          Icon(icon, color: color, size: 13),
           const SizedBox(width: 3),
           Text(
             label,
@@ -1082,7 +1088,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     ref.listen<SensorStatus>(
       sensorStatusProvider,
@@ -1129,6 +1136,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                   label: 'Back',
                   onTap: () async {
                     await _restorePortraitMode();
+
                     if (context.mounted) {
                       Navigator.of(context).pop();
                     }
@@ -1188,7 +1196,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          isConnected ? 'Connected · $_modeTitle' : 'Disconnected · $_modeTitle',
+                          isConnected
+                              ? 'Connected · $_modeTitle'
+                              : 'Disconnected · $_modeTitle',
                           style: TextStyle(
                             color: isConnected ? _T.green : _T.red,
                             fontSize: 11,
