@@ -862,16 +862,18 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             _glassButton(
-              icon: Icons.keyboard_double_arrow_up_rounded,
-              label: 'AUX UP',
+              // icon: Icons.keyboard_double_arrow_up_rounded,
+              icon: Icons.rotate_left_rounded,
+              label: 'AUX L',
               command: 'ARM:AUX:UP',
               color: _T.purple,
               size: 56,
             ),
             const SizedBox(width: 8),
             _glassButton(
-              icon: Icons.keyboard_double_arrow_down_rounded,
-              label: 'AUX DN',
+              // icon: Icons.keyboard_double_arrow_down_rounded,
+              icon: Icons.rotate_right_rounded,
+              label: 'AUX R',
               command: 'ARM:AUX:DOWN',
               color: _T.purple,
               size: 56,
