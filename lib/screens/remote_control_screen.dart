@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
+import '../config/constants.dart';
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
 import '../providers/sensor_status_provider.dart';
@@ -44,7 +46,11 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   String _lastCommand = 'READY';
   String _lastAlertStatus = '';
 
-  static const String raspberryBaseUrl = 'http://192.168.4.2:5000';
+  static const int _cameraServerPort = 5000;
+  static const Duration _cameraProbeTimeout = Duration(seconds: 2);
+
+  String? _resolvedCameraBaseUrl;
+  bool _isResolvingCameraBaseUrl = false;
 
   Timer? _cameraRefreshTimer;
   int _cameraFrameTick = 0;
@@ -54,8 +60,10 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
   String get _cameraSnapshotUrl {
     final endpoint = _mode == RemoteControlMode.arm ? 'arm_snapshot' : 'front_snapshot';
+    final baseUrl = _resolvedCameraBaseUrl ??
+        'http://${AppConstants.raspberryCandidateIps.first}:$_cameraServerPort';
 
-    return '$raspberryBaseUrl/$endpoint?t=$_cameraFrameTick';
+    return '$baseUrl/$endpoint?t=$_cameraFrameTick';
   }
 
   @override
@@ -88,6 +96,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
         });
       },
     );
+
+    _resolveCameraHost();
   }
 
   @override
@@ -199,6 +209,42 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     if (nextStatus == 'STABLE') {
       _lastAlertStatus = 'STABLE';
     }
+  }
+
+  Future<void> _resolveCameraHost() async {
+    if (_resolvedCameraBaseUrl != null || _isResolvingCameraBaseUrl) {
+      return;
+    }
+
+    _isResolvingCameraBaseUrl = true;
+    final allIps = <String>[...AppConstants.raspberryCandidateIps];
+
+    for (var i = 1; i <= 254; i++) {
+      final ip = '192.168.4.$i';
+      if (allIps.contains(ip)) continue;
+      allIps.add(ip);
+    }
+
+    for (final ip in allIps) {
+      final baseUrl = 'http://$ip:$_cameraServerPort';
+      final probeUrl = '$baseUrl/front_snapshot?t=probe';
+
+      try {
+        final response = await http.get(Uri.parse(probeUrl)).timeout(_cameraProbeTimeout);
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          if (!mounted) break;
+          setState(() {
+            _resolvedCameraBaseUrl = baseUrl;
+          });
+          break;
+        }
+      } catch (_) {
+        // ignore probe failures and try next address
+      }
+    }
+
+    _isResolvingCameraBaseUrl = false;
   }
 
   String get _modeTitle {

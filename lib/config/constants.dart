@@ -19,16 +19,17 @@ class AppConstants {
 
   // Raspberry Pi Mode Manager
   // Raspberry should be connected to the ESP32 network.
-  // Raspberry expected static IP: 192.168.4.2
-  // main_startup.py runs on port 5050.
-  static const String raspberryBaseUrl = 'http://192.168.4.2:5050';
-  static const Duration raspberryRequestTimeout = Duration(seconds: 20);
+  // Raspberry may appear at different 192.168.4.* addresses.
+  // First try 192.168.4.2, then 192.168.4.4, then scan remaining 192.168.4.x hosts.
+  static const List<String> raspberryCandidateIps = [
+    '192.168.4.2',
+    '192.168.4.4',
+  ];
+  static const int raspberryPort = 5050;
+  static const Duration raspberryRequestTimeout = Duration(seconds: 5);
+  static const Duration raspberryProbeTimeout = Duration(seconds: 2);
 
-  static const String raspberryStatusUrl = '$raspberryBaseUrl/status';
-  static const String raspberryManualModeUrl = '$raspberryBaseUrl/mode/manual';
-  static const String raspberryAutoModeUrl = '$raspberryBaseUrl/mode/auto';
-  static const String raspberryStopModeUrl = '$raspberryBaseUrl/mode/stop';
-  static const String raspberryRobotStopUrl = '$raspberryBaseUrl/robot/stop';
+  static String raspberryBaseUrl(String host) => 'http://$host:$raspberryPort';
 
   // MQTT Topics
   static const String mqttTopicRobotStatus = 'robot/status';
