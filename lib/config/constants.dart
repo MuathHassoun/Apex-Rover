@@ -1,4 +1,3 @@
-
 class AppConstants {
   // App Info
   static const String appName = 'Apex Rover Control';
@@ -23,7 +22,7 @@ class AppConstants {
   // Raspberry expected static IP: 192.168.4.2
   // main_startup.py runs on port 5050.
   static const String raspberryBaseUrl = 'http://192.168.4.2:5050';
-  static const Duration raspberryRequestTimeout = Duration(seconds: 5);
+  static const Duration raspberryRequestTimeout = Duration(seconds: 20);
 
   static const String raspberryStatusUrl = '$raspberryBaseUrl/status';
   static const String raspberryManualModeUrl = '$raspberryBaseUrl/mode/manual';
@@ -59,8 +58,7 @@ class AppConstants {
   static const Duration pollIntervalSystemStatus = Duration(seconds: 10);
 
   // Error Messages
-  static const String errorConnectionFailed =
-      'Connection failed. Please check your network.';
+  static const String errorConnectionFailed = 'Connection failed. Please check your network.';
   static const String errorTimeout = 'Request timed out. Please try again.';
   static const String errorInvalidData = 'Invalid data received from robot.';
   static const String errorDatabaseError = 'Database error occurred.';
