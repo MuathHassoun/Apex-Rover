@@ -1,3 +1,4 @@
+
 class SystemStatus {
   final bool databaseHealthy;
   final int logCount;

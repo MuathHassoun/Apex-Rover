@@ -1,9 +1,10 @@
-
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+import '../config/constants.dart';
 
 class AutoStatusScreen extends StatefulWidget {
   const AutoStatusScreen({Key? key}) : super(key: key);
@@ -13,8 +14,7 @@ class AutoStatusScreen extends StatefulWidget {
 }
 
 class _AutoStatusScreenState extends State<AutoStatusScreen> {
-  static const String raspberryModeBaseUrl = 'http://192.168.4.2:5050';
-  static const String raspberryCameraBaseUrl = 'http://192.168.4.2:5000';
+  static const int _cameraServerPort = 5000;
 
   static const Color _bgColor = Color(0xFF020712);
   static const Color _panelColor = Color(0xFF07111F);
@@ -27,6 +27,10 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
 
   bool _loading = true;
   bool _online = false;
+  bool _isResolvingRaspberryHost = false;
+
+  String? _resolvedRaspberryHost;
+
   String _selectedCamera = 'front';
 
   String _mode = 'UNKNOWN';
@@ -41,6 +45,7 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
   @override
   void initState() {
     super.initState();
+
     _fetchAutoStatus();
 
     _timer = Timer.periodic(
@@ -55,21 +60,93 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
     super.dispose();
   }
 
+  List<String> _buildRaspberryCandidates() {
+    final allIps = <String>[...AppConstants.raspberryCandidateIps];
+
+    for (var i = 1; i <= 254; i++) {
+      final ip = '192.168.4.$i';
+
+      if (!allIps.contains(ip)) {
+        allIps.add(ip);
+      }
+    }
+
+    return allIps;
+  }
+
+  Future<String> _resolveRaspberryHost() async {
+    if (_resolvedRaspberryHost != null) {
+      return _resolvedRaspberryHost!;
+    }
+
+    if (_isResolvingRaspberryHost) {
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      if (_resolvedRaspberryHost != null) {
+        return _resolvedRaspberryHost!;
+      }
+    }
+
+    _isResolvingRaspberryHost = true;
+
+    try {
+      for (final ip in _buildRaspberryCandidates()) {
+        final baseUrl = AppConstants.raspberryBaseUrl(ip);
+
+        try {
+          final response = await http
+              .get(Uri.parse('$baseUrl/status'))
+              .timeout(AppConstants.raspberryProbeTimeout);
+
+          if (response.statusCode >= 200 && response.statusCode < 300) {
+            _resolvedRaspberryHost = ip;
+            return ip;
+          }
+        } catch (_) {
+          // Try next IP.
+        }
+      }
+
+      throw Exception('No reachable Raspberry host found');
+    } finally {
+      _isResolvingRaspberryHost = false;
+    }
+  }
+
+  String get _fallbackRaspberryHost {
+    if (_resolvedRaspberryHost != null) {
+      return _resolvedRaspberryHost!;
+    }
+
+    return AppConstants.raspberryCandidateIps.first;
+  }
+
+  String get _raspberryModeBaseUrl {
+    return AppConstants.raspberryBaseUrl(_fallbackRaspberryHost);
+  }
+
+  String get _raspberryCameraBaseUrl {
+    return 'http://$_fallbackRaspberryHost:$_cameraServerPort';
+  }
+
   String get _cameraUrl {
     final ts = DateTime.now().millisecondsSinceEpoch;
 
     if (_selectedCamera == 'arm') {
-      return '$raspberryCameraBaseUrl/arm_snapshot?ts=$ts';
+      return '$_raspberryCameraBaseUrl/arm_snapshot?ts=$ts';
     }
 
-    return '$raspberryCameraBaseUrl/front_snapshot?ts=$ts';
+    return '$_raspberryCameraBaseUrl/front_snapshot?ts=$ts';
   }
 
   Future<void> _fetchAutoStatus() async {
     try {
+      final host = await _resolveRaspberryHost();
+      final baseUrl = AppConstants.raspberryBaseUrl(host);
+
       final response = await http
-          .get(Uri.parse('$raspberryModeBaseUrl/auto_status'))
-          .timeout(const Duration(seconds: 3));
+          .get(Uri.parse('$baseUrl/auto_status'))
+          .timeout(AppConstants.raspberryRequestTimeout);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         _setOffline('HTTP ${response.statusCode}');
@@ -85,11 +162,14 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
 
       final parsedTrack = _parseTrack(decoded);
 
+      if (!mounted) return;
+
       setState(() {
         _loading = false;
         _online = decoded['ok'] == true || decoded['mode'] != null;
 
         _mode = (decoded['mode'] ?? 'AUTO').toString();
+
         _stage = _readString(
           decoded,
           ['stage', 'current_stage', 'state', 'phase'],
@@ -123,11 +203,14 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
         _track = parsedTrack;
       });
     } catch (e) {
+      _resolvedRaspberryHost = null;
       _setOffline(e.toString());
     }
   }
 
   void _setOffline(String message) {
+    if (!mounted) return;
+
     setState(() {
       _loading = false;
       _online = false;
@@ -422,6 +505,15 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Host: $_fallbackRaspberryHost',
+                        style: const TextStyle(
+                          color: Colors.white30,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -446,6 +538,30 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            top: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                ),
+              ),
+              child: Text(
+                _resolvedRaspberryHost == null
+                    ? 'Scanning...'
+                    : _resolvedRaspberryHost!,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
                 ),
               ),
             ),
