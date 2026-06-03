@@ -20,6 +20,8 @@ class ControlScreen extends ConsumerStatefulWidget {
 
 class _ControlScreenState extends ConsumerState<ControlScreen> {
   double _speedValue = 60.0;
+  double _stepperStepsValue = 100.0;
+  double _servoAngleStepValue = 5.0;
   bool _isMoving = false;
   String _lastCommand = 'READY';
 
@@ -64,7 +66,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             const SizedBox(height: AppSpacing.lg),
             _speedPanel(isConnected),
             const SizedBox(height: AppSpacing.lg),
-            _advancedPanel(),
+            _unoSettingsPanel(isConnected),
             const SizedBox(height: AppSpacing.lg),
             _statusFooter(),
           ],
@@ -308,7 +310,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             },
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _navigationCard(
             title: 'Camera',
@@ -320,6 +322,23 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                 MaterialPageRoute(
                   fullscreenDialog: true,
                   builder: (_) => const CameraControlScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _navigationCard(
+            title: 'Arm',
+            subtitle: 'Arm control',
+            icon: Icons.pan_tool,
+            color: Colors.purpleAccent,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => const ArmControlScreen(),
                 ),
               );
             },
@@ -339,7 +358,10 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        constraints: const BoxConstraints(
+          minHeight: 118,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [_panelColor, _panelColor2],
@@ -358,7 +380,8 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 43,
@@ -372,28 +395,27 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
               ),
               child: Icon(icon, color: color, size: 25),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: _textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: _mutedColor,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 9),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: _textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _mutedColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -480,10 +502,14 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
         height: 58,
         width: wide ? double.infinity : null,
         decoration: BoxDecoration(
-          color: enabled ? color.withValues(alpha: 0.13) : Colors.white.withValues(alpha: 0.05),
+          color: enabled
+              ? color.withValues(alpha: 0.13)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: enabled ? color.withValues(alpha: 0.70) : Colors.white.withValues(alpha: 0.10),
+            color: enabled
+                ? color.withValues(alpha: 0.70)
+                : Colors.white.withValues(alpha: 0.10),
             width: 1.3,
           ),
           boxShadow: [
@@ -541,29 +567,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
                     max: 100,
                     divisions: 20,
                     label: '${_speedValue.toStringAsFixed(0)}%',
-                    onChanged: isConnected ? (value) => setState(() => _speedValue = value) : null,
+                    onChanged: isConnected
+                        ? (value) => setState(() => _speedValue = value)
+                        : null,
                   ),
                 ),
               ),
-              Container(
-                width: 58,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 7),
-                decoration: BoxDecoration(
-                  color: _cyanColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _cyanColor.withValues(alpha: 0.30),
-                  ),
-                ),
-                child: Text(
-                  '${_speedValue.toStringAsFixed(0)}%',
-                  style: const TextStyle(
-                    color: _cyanColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              _valueBox('${_speedValue.toStringAsFixed(0)}%', _cyanColor),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -588,7 +598,8 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           foregroundColor: selected ? Colors.black : _cyanColor,
-          backgroundColor: selected ? _cyanColor : _cyanColor.withValues(alpha: 0.07),
+          backgroundColor:
+              selected ? _cyanColor : _cyanColor.withValues(alpha: 0.07),
           side: BorderSide(
             color: _cyanColor.withValues(alpha: selected ? 0.95 : 0.35),
           ),
@@ -607,124 +618,193 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
     );
   }
 
-  Widget _advancedPanel() {
+  Widget _unoSettingsPanel(bool isConnected) {
     return _panel(
-      title: 'Advanced Controls',
-      subtitle: 'Open dedicated control screens',
+      title: 'UNO Motion Settings',
+      subtitle:
+          'Stepper steps: ${_stepperStepsValue.toStringAsFixed(0)} · Servo angle: ${_servoAngleStepValue.toStringAsFixed(0)}°',
       icon: Icons.tune,
       child: Column(
         children: [
-          _advancedTile(
-            title: 'Arm Control',
-            subtitle: 'Control the robotic arm and gripper',
-            icon: Icons.pan_tool,
+          _settingsSlider(
+            title: 'Stepper Steps',
+            subtitle: 'Applied to camera stepper and arm base stepper',
+            icon: Icons.settings_input_component,
+            color: Colors.orangeAccent,
+            value: _stepperStepsValue,
+            min: 10,
+            max: 1000,
+            divisions: 99,
+            label: '${_stepperStepsValue.toStringAsFixed(0)} steps',
+            valueText: _stepperStepsValue.toStringAsFixed(0),
+            enabled: true,
+            onChanged: (value) {
+              setState(() {
+                _stepperStepsValue = (value / 10).round() * 10;
+              });
+            },
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _settingsSlider(
+            title: 'Servo Angle Step',
+            subtitle: 'Applied to shoulder, elbow, wrist, gripper and AUX',
+            icon: Icons.rotate_90_degrees_ccw,
             color: Colors.purpleAccent,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) => const ArmControlScreen(),
-                ),
-              );
+            value: _servoAngleStepValue,
+            min: 1,
+            max: 20,
+            divisions: 19,
+            label: '${_servoAngleStepValue.toStringAsFixed(0)}°',
+            valueText: '${_servoAngleStepValue.toStringAsFixed(0)}°',
+            enabled: true,
+            onChanged: (value) {
+              setState(() {
+                _servoAngleStepValue = value.roundToDouble();
+              });
             },
           ),
-          const SizedBox(height: AppSpacing.sm),
-          _advancedTile(
-            title: 'Camera Control',
-            subtitle: 'Move the stepper stand and servo tilt',
-            icon: Icons.videocam,
-            color: Colors.cyanAccent,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) => const CameraControlScreen(),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: isConnected
+                    ? _cyanColor
+                    : Colors.white.withValues(alpha: 0.08),
+                foregroundColor: isConnected ? Colors.black : Colors.white30,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-              );
-            },
+              ),
+              onPressed: isConnected ? _sendUnoSettings : null,
+              icon: const Icon(Icons.send_rounded),
+              label: const Text(
+                'Apply UNO Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _advancedTile(
-            title: 'Remote Control',
-            subtitle: 'Landscape control with camera and sensors',
-            icon: Icons.screen_rotation,
-            color: _cyanColor,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) => const RemoteControlScreen(),
-                ),
-              );
-            },
+          Text(
+            'UNO must support ARM:CONFIG commands to apply these values.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: _mutedColor,
+              height: 1.25,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _advancedTile({
+  Widget _settingsSlider({
     required String title,
     required String subtitle,
     required IconData icon,
     required Color color,
-    required VoidCallback onTap,
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required String label,
+    required String valueText,
+    required bool enabled,
+    required ValueChanged<double> onChanged,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.25),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.24),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 47,
-              height: 47,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.22),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.28),
+                  ),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: _textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: _mutedColor,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Icon(icon, color: color, size: 25),
+              _valueBox(valueText, color),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: color,
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
+              thumbColor: color,
+              overlayColor: color.withValues(alpha: 0.18),
+              valueIndicatorColor: color,
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: _textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: _mutedColor,
-                      height: 1.25,
-                    ),
-                  ),
-                ],
-              ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              label: label,
+              onChanged: enabled ? onChanged : null,
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 15,
-              color: Colors.white.withValues(alpha: 0.38),
-            ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _valueBox(String value, Color color) {
+    return Container(
+      width: 66,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withValues(alpha: 0.30),
+        ),
+      ),
+      child: Text(
+        value,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
         ),
       ),
     );
@@ -821,7 +901,9 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           ),
         ),
         child: Text(
-          _isMoving ? 'Robot is moving · $_lastCommand' : 'Ready · $_lastCommand',
+          _isMoving
+              ? 'Robot is moving · $_lastCommand'
+              : 'Ready · $_lastCommand',
           style: AppTextStyles.bodyMedium.copyWith(
             color: _isMoving ? Colors.greenAccent : _mutedColor,
             fontWeight: FontWeight.bold,
@@ -859,6 +941,43 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           style: const TextStyle(color: Colors.white),
         ),
         duration: const Duration(milliseconds: 800),
+      ),
+    );
+  }
+
+  void _sendRawCommand(String commandType) {
+    final command = ControlCommand(
+      commandId: '${_commandId}_${DateTime.now().millisecondsSinceEpoch}',
+      commandType: commandType,
+      parameters: {
+        'robotId': 'robot_001',
+      },
+      timestamp: DateTime.now(),
+    );
+
+    ref.read(connectionStatusProvider.notifier).sendCommand(command);
+
+    setState(() {
+      _lastCommand = commandType;
+      _isMoving = false;
+    });
+  }
+
+  void _sendUnoSettings() {
+    final stepperSteps = _stepperStepsValue.round();
+    final servoStep = _servoAngleStepValue.round();
+
+    _sendRawCommand('ARM:CONFIG:STEPPER_STEPS:$stepperSteps');
+    _sendRawCommand('ARM:CONFIG:SERVO_STEP:$servoStep');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: _panelColor2,
+        content: Text(
+          'UNO settings sent: $stepperSteps steps, $servoStep° servo step',
+          style: const TextStyle(color: Colors.white),
+        ),
+        duration: const Duration(milliseconds: 1000),
       ),
     );
   }
