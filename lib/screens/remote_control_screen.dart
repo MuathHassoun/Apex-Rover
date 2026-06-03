@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -704,7 +703,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
         _glassButton(
           icon: Icons.keyboard_arrow_up_rounded,
           label: 'FORWARD',
-          command: 'FORWARD',
+          command: 'move_forward',
           color: _T.green,
           size: 62,
         ),
@@ -715,7 +714,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.keyboard_arrow_left_rounded,
               label: 'LEFT',
-              command: 'LEFT',
+              command: 'turn_left',
               color: _T.cyan,
               size: 62,
             ),
@@ -725,7 +724,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.keyboard_arrow_right_rounded,
               label: 'RIGHT',
-              command: 'RIGHT',
+              command: 'turn_right',
               color: _T.cyan,
               size: 62,
             ),
@@ -735,7 +734,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
         _glassButton(
           icon: Icons.keyboard_arrow_down_rounded,
           label: 'BACK',
-          command: 'BACKWARD',
+          command: 'move_backward',
           color: _T.green,
           size: 62,
         ),
@@ -923,6 +922,29 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               label: 'AUX R',
               command: 'ARM:AUX:UP',
               color: _T.purple,
+              size: 56,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _overlayLabel('STATES'),
+        const SizedBox(height: 7),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.check_rounded,
+              label: 'READY',
+              command: 'ARM:READY',
+              color: _T.green,
+              size: 56,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.delete_rounded,
+              label: 'DROP',
+              command: 'ARM:DROP',
+              color: _T.red,
               size: 56,
             ),
           ],
