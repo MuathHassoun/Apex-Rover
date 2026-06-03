@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../config/theme.dart';
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
+import '../providers/uno_motion_settings_provider.dart';
 
 import 'auto_status_screen.dart';
 import 'drive_mode_screen.dart';
@@ -727,9 +728,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             valueText: _stepperStepsValue.toStringAsFixed(0),
             enabled: true,
             onChanged: (value) {
+              final steps = (value / 10).round() * 10;
+
               setState(() {
-                _stepperStepsValue = (value / 10).round() * 10;
+                _stepperStepsValue = steps.toDouble();
               });
+
+              ref.read(unoMotionSettingsProvider.notifier).setStepperSteps(steps);
             },
           ),
           const SizedBox(height: AppSpacing.md),
@@ -746,9 +751,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             valueText: '${_servoAngleStepValue.toStringAsFixed(0)}°',
             enabled: true,
             onChanged: (value) {
+              final step = value.round();
+
               setState(() {
-                _servoAngleStepValue = value.roundToDouble();
+                _servoAngleStepValue = step.toDouble();
               });
+
+              ref.read(unoMotionSettingsProvider.notifier).setServoAngleStep(step);
             },
           ),
           const SizedBox(height: AppSpacing.md),
@@ -775,7 +784,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'UNO must support ARM:CONFIG commands to apply these values.',
+            'Changing sliders updates Arm and Camera pages directly. Apply also sends config to UNO.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall.copyWith(
               color: _mutedColor,
@@ -1054,6 +1063,9 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
   void _sendUnoSettings() {
     final stepperSteps = _stepperStepsValue.round();
     final servoStep = _servoAngleStepValue.round();
+
+    ref.read(unoMotionSettingsProvider.notifier).setStepperSteps(stepperSteps);
+    ref.read(unoMotionSettingsProvider.notifier).setServoAngleStep(servoStep);
 
     _sendRawCommand('ARM:CONFIG:STEPPER_STEPS:$stepperSteps');
     _sendRawCommand('ARM:CONFIG:SERVO_STEP:$servoStep');
