@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
+import '../providers/uno_motion_settings_provider.dart';
 
 class CameraControlScreen extends ConsumerStatefulWidget {
   const CameraControlScreen({Key? key}) : super(key: key);
@@ -15,13 +14,7 @@ class CameraControlScreen extends ConsumerStatefulWidget {
 }
 
 class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
-  final TextEditingController _stepsController = TextEditingController(text: '200');
   String _lastCommand = 'CAM:STOP';
-
-  int get _stepCount {
-    final value = int.tryParse(_stepsController.text.trim()) ?? 200;
-    return value.clamp(1, 5000);
-  }
 
   bool get _isConnected =>
       ref.read(connectionStatusProvider) == ConnectionStatus.connected;
@@ -76,14 +69,14 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
       child: GestureDetector(
         onTap: isConnected ? () => _sendCameraCommand(command) : null,
         child: Container(
-          height: 78,
+          height: 82,
           decoration: BoxDecoration(
             color: isConnected
-                ? color.withOpacity(0.16)
-                : Colors.grey.withOpacity(0.10),
+                ? color.withValues(alpha: 0.16)
+                : Colors.grey.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isConnected ? color.withOpacity(0.9) : Colors.grey,
+              color: isConnected ? color.withValues(alpha: 0.9) : Colors.grey,
               width: 1.5,
             ),
           ),
@@ -99,6 +92,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                   color: isConnected ? color : Colors.grey,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
+                  height: 1.15,
                 ),
               ),
             ],
@@ -120,7 +114,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
       );
       ref.read(connectionStatusProvider.notifier).sendCommand(command);
     }
-    _stepsController.dispose();
+
     super.dispose();
   }
 
@@ -128,6 +122,10 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
   Widget build(BuildContext context) {
     final isConnected =
         ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+
+    final settings = ref.watch(unoMotionSettingsProvider);
+    final stepperSteps = settings.stepperSteps;
+    final servoStep = settings.servoAngleStep;
 
     return Scaffold(
       backgroundColor: const Color(0xFF050B12),
@@ -152,7 +150,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.cyanAccent.withOpacity(0.55),
+                    color: Colors.cyanAccent.withValues(alpha: 0.55),
                     width: 1.4,
                   ),
                 ),
@@ -174,10 +172,10 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Control NEMA 17 stepper and camera servo through ESP32',
+                      'Stepper: $stepperSteps steps · Servo: $servoStep°',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.62),
+                        color: Colors.white.withValues(alpha: 0.62),
                         fontSize: 13,
                       ),
                     ),
@@ -186,14 +184,18 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            isConnected ? Icons.check_circle : Icons.error_outline,
-                            color: isConnected ? Colors.greenAccent : Colors.redAccent,
+                            isConnected
+                                ? Icons.check_circle
+                                : Icons.error_outline,
+                            color: isConnected
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -202,7 +204,9 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                                   ? 'Connected | Last Command: $_lastCommand'
                                   : 'Not Connected',
                               style: TextStyle(
-                                color: isConnected ? Colors.white : Colors.redAccent,
+                                color: isConnected
+                                    ? Colors.white
+                                    : Colors.redAccent,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -219,7 +223,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Stepper Step Count',
+                  'Stepper Step Control',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -228,48 +232,20 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _stepsController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Example: 200',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.45)),
-                  prefixIcon: const Icon(Icons.pin, color: Colors.cyanAccent),
-                  suffixText: 'steps',
-                  suffixStyle: const TextStyle(color: Colors.cyanAccent),
-                  filled: true,
-                  fillColor: const Color(0xFF0B1726),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.cyanAccent.withOpacity(0.4)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.cyanAccent.withOpacity(0.35)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Colors.cyanAccent),
-                  ),
-                ),
-              ),
 
-              const SizedBox(height: 16),
               Row(
                 children: [
                   _cameraButton(
-                    label: 'STEP LEFT\n$_stepCount',
+                    label: 'STEP LEFT\n$stepperSteps',
                     icon: Icons.rotate_left,
-                    command: 'CAM:STEP_LEFT:$_stepCount',
+                    command: 'CAM:STEP_LEFT:$stepperSteps',
                     color: Colors.purpleAccent,
                   ),
                   const SizedBox(width: 12),
                   _cameraButton(
-                    label: 'STEP RIGHT\n$_stepCount',
+                    label: 'STEP RIGHT\n$stepperSteps',
                     icon: Icons.rotate_right,
-                    command: 'CAM:STEP_RIGHT:$_stepCount',
+                    command: 'CAM:STEP_RIGHT:$stepperSteps',
                     color: Colors.purpleAccent,
                   ),
                 ],
@@ -280,7 +256,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Tilt Control',
+                  'Tilt Servo Control',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -289,12 +265,13 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+
               Row(
                 children: [
                   _cameraButton(
-                    label: 'UP',
+                    label: 'UP\n$servoStep°',
                     icon: Icons.keyboard_arrow_up,
-                    command: 'CAM:UP',
+                    command: 'CAM:UP:$servoStep',
                     color: Colors.greenAccent,
                   ),
                   const SizedBox(width: 12),
@@ -306,9 +283,9 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                   ),
                   const SizedBox(width: 12),
                   _cameraButton(
-                    label: 'DOWN',
+                    label: 'DOWN\n$servoStep°',
                     icon: Icons.keyboard_arrow_down,
-                    command: 'CAM:DOWN',
+                    command: 'CAM:DOWN:$servoStep',
                     color: Colors.greenAccent,
                   ),
                 ],
@@ -328,6 +305,7 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+
               Row(
                 children: [
                   _cameraButton(
@@ -355,10 +333,10 @@ class _CameraControlScreenState extends ConsumerState<CameraControlScreen> {
 
               const SizedBox(height: 18),
               Text(
-                'Step buttons move a fixed number of steps. LEFT/RIGHT rotate continuously until STOP.',
+                'Stepper and servo values come from Control Screen → UNO Motion Settings.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.45),
+                  color: Colors.white.withValues(alpha: 0.45),
                   fontSize: 12,
                 ),
               ),

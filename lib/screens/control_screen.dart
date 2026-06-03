@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 import '../config/theme.dart';
 import '../models/robot_model.dart';
 import '../providers/connection_provider.dart';
+import '../providers/uno_motion_settings_provider.dart';
 
+import 'auto_status_screen.dart';
 import 'drive_mode_screen.dart';
 import 'arm_control_screen.dart';
 import 'camera_control_screen.dart';
@@ -61,6 +63,8 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             _heroRemoteCard(),
             const SizedBox(height: AppSpacing.lg),
             _quickActions(),
+            const SizedBox(height: AppSpacing.lg),
+            _autoStatusCard(),
             const SizedBox(height: AppSpacing.lg),
             _movementPanel(isConnected),
             const SizedBox(height: AppSpacing.lg),
@@ -424,6 +428,89 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
     );
   }
 
+  Widget _autoStatusCard() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => const AutoStatusScreen(),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF07111F), Color(0xFF12395A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.orangeAccent.withValues(alpha: 0.45),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orangeAccent.withValues(alpha: 0.10),
+              blurRadius: 16,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent.withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.orangeAccent.withValues(alpha: 0.30),
+                ),
+              ),
+              child: const Icon(
+                Icons.timeline,
+                color: Colors.orangeAccent,
+                size: 27,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Auto Status Track',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: _textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'View auto stage, decisions, errors, and robot cameras',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: _mutedColor,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white.withValues(alpha: 0.55),
+              size: 17,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _movementPanel(bool isConnected) {
     return _panel(
       title: 'Movement Control',
@@ -639,9 +726,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             valueText: _stepperStepsValue.toStringAsFixed(0),
             enabled: true,
             onChanged: (value) {
+              final steps = (value / 10).round() * 10;
+
               setState(() {
-                _stepperStepsValue = (value / 10).round() * 10;
+                _stepperStepsValue = steps.toDouble();
               });
+
+              ref.read(unoMotionSettingsProvider.notifier).setStepperSteps(steps);
             },
           ),
           const SizedBox(height: AppSpacing.md),
@@ -658,9 +749,13 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
             valueText: '${_servoAngleStepValue.toStringAsFixed(0)}°',
             enabled: true,
             onChanged: (value) {
+              final step = value.round();
+
               setState(() {
-                _servoAngleStepValue = value.roundToDouble();
+                _servoAngleStepValue = step.toDouble();
               });
+
+              ref.read(unoMotionSettingsProvider.notifier).setServoAngleStep(step);
             },
           ),
           const SizedBox(height: AppSpacing.md),
@@ -687,7 +782,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'UNO must support ARM:CONFIG commands to apply these values.',
+            'Changing sliders updates Arm and Camera pages directly. Apply also sends config to UNO.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall.copyWith(
               color: _mutedColor,
@@ -966,6 +1061,9 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
   void _sendUnoSettings() {
     final stepperSteps = _stepperStepsValue.round();
     final servoStep = _servoAngleStepValue.round();
+
+    ref.read(unoMotionSettingsProvider.notifier).setStepperSteps(stepperSteps);
+    ref.read(unoMotionSettingsProvider.notifier).setServoAngleStep(servoStep);
 
     _sendRawCommand('ARM:CONFIG:STEPPER_STEPS:$stepperSteps');
     _sendRawCommand('ARM:CONFIG:SERVO_STEP:$servoStep');
