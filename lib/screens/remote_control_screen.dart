@@ -107,6 +107,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
     _sendCommand('STOP', showMessage: false);
     _sendCommand('CAM:STOP', showMessage: false);
+    _sendCommand('ARM:BASE:STOP', showMessage: false);
     _sendCommand('ARM:STOP', showMessage: false);
 
     _restorePortraitMode();
@@ -523,12 +524,24 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     required Color color,
     double size = 58,
     bool sendOnTapDown = true,
+
+    // NEW:
+    String? releaseCommand,
   }) {
     final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
+    void sendReleaseCommand() {
+      if (!isConnected || releaseCommand == null) return;
+      _sendCommand(releaseCommand!, showMessage: false);
+    }
+
     return GestureDetector(
       onTapDown: isConnected && sendOnTapDown ? (_) => _sendCommand(command) : null,
-      onTap: isConnected && !sendOnTapDown ? () => _sendCommand(command) : null,
+      onTapUp: isConnected && releaseCommand != null ? (_) => sendReleaseCommand() : null,
+      onTapCancel: isConnected && releaseCommand != null ? sendReleaseCommand : null,
+      onTap: isConnected && !sendOnTapDown && releaseCommand == null
+          ? () => _sendCommand(command)
+          : null,
       child: Container(
         width: size,
         height: size,
@@ -613,6 +626,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             command: 'CAM:UP',
             color: _T.cyan,
             size: 54,
+            sendOnTapDown: false,
           ),
           const SizedBox(height: 8),
           Row(
@@ -622,6 +636,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                 icon: Icons.keyboard_arrow_left_rounded,
                 label: 'LEFT',
                 command: 'CAM:LEFT',
+                releaseCommand: 'CAM:STOP',
                 color: _T.cyan,
                 size: 54,
               ),
@@ -632,6 +647,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                 icon: Icons.keyboard_arrow_right_rounded,
                 label: 'RIGHT',
                 command: 'CAM:RIGHT',
+                releaseCommand: 'CAM:STOP',
                 color: _T.cyan,
                 size: 54,
               ),
@@ -643,10 +659,11 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             children: [
               _glassButton(
                 icon: Icons.keyboard_arrow_down_rounded,
-                label: 'DOWN',
+                label: 'CAM DOWN',
                 command: 'CAM:DOWN',
                 color: _T.cyan,
                 size: 54,
+                sendOnTapDown: false,
               ),
               const SizedBox(width: 8),
               _glassButton(
@@ -655,6 +672,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                 command: 'CAM:CENTER',
                 color: _T.orange,
                 size: 54,
+                sendOnTapDown: false,
               ),
             ],
           ),
@@ -704,6 +722,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           icon: Icons.keyboard_arrow_up_rounded,
           label: 'FORWARD',
           command: 'move_forward',
+          releaseCommand: 'STOP',
           color: _T.green,
           size: 62,
         ),
@@ -715,6 +734,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               icon: Icons.keyboard_arrow_left_rounded,
               label: 'LEFT',
               command: 'turn_left',
+              releaseCommand: 'STOP',
               color: _T.cyan,
               size: 62,
             ),
@@ -725,6 +745,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               icon: Icons.keyboard_arrow_right_rounded,
               label: 'RIGHT',
               command: 'turn_right',
+              releaseCommand: 'STOP',
               color: _T.cyan,
               size: 62,
             ),
@@ -735,6 +756,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           icon: Icons.keyboard_arrow_down_rounded,
           label: 'BACK',
           command: 'move_backward',
+          releaseCommand: 'STOP',
           color: _T.green,
           size: 62,
         ),
@@ -787,6 +809,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               icon: Icons.rotate_left_rounded,
               label: 'BASE L',
               command: 'ARM:BASE:LEFT',
+              releaseCommand: 'ARM:BASE:STOP',
               color: _T.purple,
               size: 58,
             ),
@@ -795,6 +818,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               icon: Icons.rotate_right_rounded,
               label: 'BASE R',
               command: 'ARM:BASE:RIGHT',
+              releaseCommand: 'ARM:BASE:STOP',
               color: _T.purple,
               size: 58,
             ),

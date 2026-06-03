@@ -17,8 +17,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
   String _lastAction = 'Ready';
 
   void _sendArmCommand(String command) {
-    final isConnected =
-        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     setState(() {
       _lastAction = command.replaceAll('ARM:', '').replaceAll(':', ' ');
@@ -56,8 +55,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConnected =
-        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     final settings = ref.watch(unoMotionSettingsProvider);
     final stepperSteps = settings.stepperSteps;
@@ -84,7 +82,6 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 servoStep: servoStep,
               ),
               const SizedBox(height: AppSpacing.lg),
-
               _SectionTitle(
                 title: 'Base Stepper',
                 subtitle: 'Arm base stepper uses $stepperSteps steps per click',
@@ -127,9 +124,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Shoulder',
                 subtitle: 'Servo moves $servoStep° per click',
@@ -162,9 +157,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Elbow',
                 subtitle: 'Servo moves $servoStep° per click',
@@ -197,9 +190,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Wrist',
                 subtitle: 'Servo moves $servoStep° per click',
@@ -232,9 +223,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'AUX Servo',
                 subtitle: 'AUX axis moves $servoStep° per click',
@@ -267,9 +256,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Gripper',
                 subtitle: 'Open and close object gripper',
@@ -298,9 +285,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Safe Positions',
                 subtitle: 'UNO staged HOME / READY positions',
@@ -329,6 +314,13 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                     onTap: () => _sendArmCommand('ARM:HOME'),
                   ),
                   _QuickActionButton(
+                    label: 'DROP',
+                    icon: Icons.home,
+                    color: Colors.orangeAccent,
+                    enabled: isConnected,
+                    onTap: () => _sendArmCommand('ARM:DROP'),
+                  ),
+                  _QuickActionButton(
                     label: 'ARM STOP',
                     icon: Icons.stop_circle,
                     color: Colors.redAccent,
@@ -344,7 +336,6 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
             ],
           ),
