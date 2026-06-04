@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +6,7 @@ import 'control_screen.dart';
 import 'connection_screen.dart';
 import 'sensors_screen.dart';
 import 'about_screen.dart';
+import 'test_blocks_screen.dart';
 
 class NavigationScreen extends ConsumerStatefulWidget {
   const NavigationScreen({Key? key}) : super(key: key);
@@ -29,6 +29,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     DashboardScreen(),
     ControlScreen(),
     SensorsScreen(),
+    TestBlocksScreen(),
     ConnectionScreen(),
     AboutScreen(),
   ];
@@ -37,6 +38,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     'Home',
     'Control',
     'Sensors',
+    'Test',
     'Connect',
     'About',
   ];
@@ -45,6 +47,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     'Apex Rover Dashboard',
     'Manual Robot Control',
     'Live Sensor Status',
+    'Mega LEGO Blocks Test',
     'ESP32 WebSocket Link',
     'Project Information',
   ];
@@ -53,6 +56,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     Icons.dashboard_rounded,
     Icons.gamepad_rounded,
     Icons.sensors_rounded,
+
+Icons.memory_rounded,    
     Icons.wifi_rounded,
     Icons.info_rounded,
   ];
@@ -140,10 +145,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         child: _screens[_selectedIndex],
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(10, 0, 10, 24),
+        minimum: const EdgeInsets.fromLTRB(8, 0, 8, 24),
         child: Container(
-          height: 78,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          height: 82,
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [_panelColor, _panelColor2],
@@ -180,13 +185,17 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     curve: Curves.easeOut,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
-                      color: selected ? _cyanColor.withValues(alpha: 0.14) : Colors.transparent,
+                      color: selected
+                          ? _cyanColor.withValues(alpha: 0.14)
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: selected ? _cyanColor.withValues(alpha: 0.45) : Colors.transparent,
+                        color: selected
+                            ? _cyanColor.withValues(alpha: 0.45)
+                            : Colors.transparent,
                       ),
                     ),
                     child: Column(
@@ -194,7 +203,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       children: [
                         Icon(
                           _screenIcons[index],
-                          size: selected ? 25 : 22,
+                          size: selected ? 24 : 21,
                           color: selected ? _cyanColor : _mutedColor,
                         ),
                         const SizedBox(height: 4),
@@ -202,8 +211,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                           duration: const Duration(milliseconds: 180),
                           style: TextStyle(
                             color: selected ? _cyanColor : _mutedColor,
-                            fontSize: selected ? 10.5 : 9.5,
-                            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                            fontSize: selected ? 10 : 9,
+                            fontWeight:
+                                selected ? FontWeight.bold : FontWeight.w500,
                           ),
                           child: Text(
                             _screenTitles[index],

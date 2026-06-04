@@ -37,7 +37,8 @@ class RemoteControlScreen extends ConsumerStatefulWidget {
   const RemoteControlScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<RemoteControlScreen> createState() => _RemoteControlScreenState();
+  ConsumerState<RemoteControlScreen> createState() =>
+      _RemoteControlScreenState();
 }
 
 class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
@@ -59,7 +60,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   late Animation<double> _pulseAnim;
 
   String get _cameraSnapshotUrl {
-    final endpoint = _mode == RemoteControlMode.arm ? 'arm_snapshot' : 'front_snapshot';
+    final endpoint =
+        _mode == RemoteControlMode.arm ? 'arm_snapshot' : 'front_snapshot';
+
     final baseUrl = _resolvedCameraBaseUrl ??
         'http://${AppConstants.raspberryCandidateIps.first}:$_cameraServerPort';
 
@@ -106,8 +109,17 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     _pulseController.dispose();
 
     _sendCommand('STOP', showMessage: false);
+    _sendCommand('JACK:ALL:STOP', showMessage: false);
+
     _sendCommand('CAM:STOP', showMessage: false);
+    _sendCommand('CAM:SERVO:STOP', showMessage: false);
+
     _sendCommand('ARM:BASE:STOP', showMessage: false);
+    _sendCommand('ARM:SHOULDER:STOP', showMessage: false);
+    _sendCommand('ARM:ELBOW:STOP', showMessage: false);
+    _sendCommand('ARM:WRIST:STOP', showMessage: false);
+    _sendCommand('ARM:AUX:STOP', showMessage: false);
+    _sendCommand('ARM:GRIPPER:STOP', showMessage: false);
     _sendCommand('ARM:STOP', showMessage: false);
 
     _restorePortraitMode();
@@ -125,7 +137,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   }
 
   void _sendCommand(String commandType, {bool showMessage = true}) {
-    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     if (!isConnected) {
       if (showMessage && mounted) {
@@ -196,11 +209,14 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                isDanger ? 'DANGER — Robot may fall' : 'WARNING — Robot is unstable',
+                isDanger
+                    ? 'DANGER — Robot may fall'
+                    : 'WARNING — Robot is unstable',
               ),
             ],
           ),
-          backgroundColor: isDanger ? _T.red.withOpacity(0.9) : _T.orange.withOpacity(0.9),
+          backgroundColor:
+              isDanger ? _T.red.withOpacity(0.9) : _T.orange.withOpacity(0.9),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
@@ -218,6 +234,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     }
 
     _isResolvingCameraBaseUrl = true;
+
     final allIps = <String>[...AppConstants.raspberryCandidateIps];
 
     for (var i = 1; i <= 254; i++) {
@@ -231,17 +248,20 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
       final probeUrl = '$baseUrl/front_snapshot?t=probe';
 
       try {
-        final response = await http.get(Uri.parse(probeUrl)).timeout(_cameraProbeTimeout);
+        final response =
+            await http.get(Uri.parse(probeUrl)).timeout(_cameraProbeTimeout);
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           if (!mounted) break;
+
           setState(() {
             _resolvedCameraBaseUrl = baseUrl;
           });
+
           break;
         }
       } catch (_) {
-        // ignore probe failures and try next address
+        // Ignore probe failures and try next address.
       }
     }
 
@@ -331,7 +351,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                 ),
                 _modeTile(
                   title: 'Arm',
-                  subtitle: 'Arm controls split left/right + arm camera',
+                  subtitle: 'Arm continuous controls + arm camera',
                   icon: Icons.precision_manufacturing_rounded,
                   mode: RemoteControlMode.arm,
                 ),
@@ -354,7 +374,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: selected ? _T.cyan.withOpacity(0.14) : Colors.white.withOpacity(0.05),
+        color:
+            selected ? _T.cyan.withOpacity(0.14) : Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: selected ? _T.cyan.withOpacity(0.55) : Colors.white12,
@@ -385,7 +406,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           subtitle,
           style: const TextStyle(color: _T.textSecondary),
         ),
-        trailing: selected ? const Icon(Icons.check_circle, color: _T.cyan) : null,
+        trailing:
+            selected ? const Icon(Icons.check_circle, color: _T.cyan) : null,
       ),
     );
   }
@@ -524,21 +546,23 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     required Color color,
     double size = 58,
     bool sendOnTapDown = true,
-
-    // NEW:
     String? releaseCommand,
   }) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     void sendReleaseCommand() {
       if (!isConnected || releaseCommand == null) return;
-      _sendCommand(releaseCommand!, showMessage: false);
+      _sendCommand(releaseCommand, showMessage: false);
     }
 
     return GestureDetector(
-      onTapDown: isConnected && sendOnTapDown ? (_) => _sendCommand(command) : null,
-      onTapUp: isConnected && releaseCommand != null ? (_) => sendReleaseCommand() : null,
-      onTapCancel: isConnected && releaseCommand != null ? sendReleaseCommand : null,
+      onTapDown:
+          isConnected && sendOnTapDown ? (_) => _sendCommand(command) : null,
+      onTapUp:
+          isConnected && releaseCommand != null ? (_) => sendReleaseCommand() : null,
+      onTapCancel:
+          isConnected && releaseCommand != null ? sendReleaseCommand : null,
       onTap: isConnected && !sendOnTapDown && releaseCommand == null
           ? () => _sendCommand(command)
           : null,
@@ -549,7 +573,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           color: Colors.black.withOpacity(0.16),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isConnected ? color.withOpacity(0.50) : Colors.white.withOpacity(0.14),
+            color: isConnected
+                ? color.withOpacity(0.50)
+                : Colors.white.withOpacity(0.14),
             width: 1.1,
           ),
         ),
@@ -583,7 +609,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     required String command,
     double size = 62,
   }) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     return GestureDetector(
       onTapDown: isConnected ? (_) => _sendCommand(command) : null,
@@ -623,10 +650,10 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           _glassButton(
             icon: Icons.keyboard_arrow_up_rounded,
             label: 'CAM UP',
-            command: 'CAM:UP',
+            command: 'CAM:SERVO:MOVE_UP',
+            releaseCommand: 'CAM:SERVO:STOP',
             color: _T.cyan,
             size: 54,
-            sendOnTapDown: false,
           ),
           const SizedBox(height: 8),
           Row(
@@ -660,10 +687,10 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               _glassButton(
                 icon: Icons.keyboard_arrow_down_rounded,
                 label: 'CAM DOWN',
-                command: 'CAM:DOWN',
+                command: 'CAM:SERVO:MOVE_DOWN',
+                releaseCommand: 'CAM:SERVO:STOP',
                 color: _T.cyan,
                 size: 54,
-                sendOnTapDown: false,
               ),
               const SizedBox(width: 8),
               _glassButton(
@@ -691,7 +718,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
   Widget _mainControlsForMode() {
     switch (_mode) {
       case RemoteControlMode.basic:
-        return _movementControlsOverlay();
+        return _movementControlsOverlay;
 
       case RemoteControlMode.rearJack:
         return _jackControlsOverlay(
@@ -714,7 +741,7 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
     }
   }
 
-  Widget _movementControlsOverlay() {
+  Widget get _movementControlsOverlay {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -835,7 +862,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.arrow_downward_rounded,
               label: 'SH DN',
-              command: 'ARM:SHOULDER:DOWN',
+              command: 'ARM:SHOULDER:MOVE_DOWN',
+              releaseCommand: 'ARM:SHOULDER:STOP',
               color: _T.amber,
               size: 58,
             ),
@@ -843,7 +871,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.arrow_upward_rounded,
               label: 'SH UP',
-              command: 'ARM:SHOULDER:UP',
+              command: 'ARM:SHOULDER:MOVE_UP',
+              releaseCommand: 'ARM:SHOULDER:STOP',
               color: _T.amber,
               size: 58,
             ),
@@ -865,7 +894,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.south_rounded,
               label: 'ELB DN',
-              command: 'ARM:ELBOW:DOWN',
+              command: 'ARM:ELBOW:MOVE_DOWN',
+              releaseCommand: 'ARM:ELBOW:STOP',
               color: _T.amber,
               size: 58,
             ),
@@ -873,7 +903,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.north_rounded,
               label: 'ELB UP',
-              command: 'ARM:ELBOW:UP',
+              command: 'ARM:ELBOW:MOVE_UP',
+              releaseCommand: 'ARM:ELBOW:STOP',
               color: _T.amber,
               size: 58,
             ),
@@ -888,7 +919,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.keyboard_arrow_down_rounded,
               label: 'WR DN',
-              command: 'ARM:WRIST:DOWN',
+              command: 'ARM:WRIST:MOVE_DOWN',
+              releaseCommand: 'ARM:WRIST:STOP',
               color: _T.blue,
               size: 56,
             ),
@@ -896,7 +928,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.keyboard_arrow_up_rounded,
               label: 'WR UP',
-              command: 'ARM:WRIST:UP',
+              command: 'ARM:WRIST:MOVE_UP',
+              releaseCommand: 'ARM:WRIST:STOP',
               color: _T.blue,
               size: 56,
             ),
@@ -911,7 +944,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.pan_tool_alt_rounded,
               label: 'OPEN',
-              command: 'ARM:GRIPPER:OPEN',
+              command: 'ARM:GRIPPER:MOVE_OPEN',
+              releaseCommand: 'ARM:GRIPPER:STOP',
               color: _T.green,
               size: 56,
             ),
@@ -919,7 +953,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
             _glassButton(
               icon: Icons.back_hand_rounded,
               label: 'CLOSE',
-              command: 'ARM:GRIPPER:CLOSE',
+              command: 'ARM:GRIPPER:MOVE_CLOSE',
+              releaseCommand: 'ARM:GRIPPER:STOP',
               color: _T.green,
               size: 56,
             ),
@@ -932,19 +967,19 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             _glassButton(
-              // icon: Icons.keyboard_double_arrow_down_rounded,
               icon: Icons.rotate_left_rounded,
               label: 'AUX L',
-              command: 'ARM:AUX:DOWN',
+              command: 'ARM:AUX:MOVE_DOWN',
+              releaseCommand: 'ARM:AUX:STOP',
               color: _T.purple,
               size: 56,
             ),
             const SizedBox(width: 8),
             _glassButton(
-              // icon: Icons.keyboard_double_arrow_up_rounded,
               icon: Icons.rotate_right_rounded,
               label: 'AUX R',
-              command: 'ARM:AUX:UP',
+              command: 'ARM:AUX:MOVE_UP',
+              releaseCommand: 'ARM:AUX:STOP',
               color: _T.purple,
               size: 56,
             ),
@@ -961,25 +996,65 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
               label: 'READY',
               command: 'ARM:READY',
               color: _T.green,
-              size: 56,
+              size: 54,
+              sendOnTapDown: false,
             ),
             const SizedBox(width: 8),
             _glassButton(
-              icon: Icons.delete_rounded,
-              label: 'DROP',
-              command: 'ARM:DROP',
-              color: _T.red,
-              size: 56,
+              icon: Icons.outbox_rounded,
+              label: 'TAKE',
+              command: 'ARM:TAKE_OUT',
+              color: _T.amber,
+              size: 54,
+              sendOnTapDown: false,
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        _glassButton(
-          icon: Icons.home_rounded,
-          label: 'HOME',
-          command: 'ARM:HOME',
-          color: _T.textSecondary,
-          size: 56,
+        const SizedBox(height: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.move_to_inbox_rounded,
+              label: 'DROP IN',
+              command: 'ARM:DROP_IN',
+              color: _T.red,
+              size: 54,
+              sendOnTapDown: false,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.output_rounded,
+              label: 'DROP OUT',
+              command: 'ARM:DROP_OUT',
+              color: _T.orange,
+              size: 54,
+              sendOnTapDown: false,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _glassButton(
+              icon: Icons.home_rounded,
+              label: 'HOME',
+              command: 'ARM:HOME',
+              color: _T.textSecondary,
+              size: 54,
+              sendOnTapDown: false,
+            ),
+            const SizedBox(width: 8),
+            _glassButton(
+              icon: Icons.stop_circle_rounded,
+              label: 'STOP',
+              command: 'ARM:STOP',
+              color: _T.red,
+              size: 54,
+              sendOnTapDown: false,
+            ),
+          ],
         ),
       ],
     );
@@ -1059,13 +1134,16 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
           ),
           _sensorPlainItem(
             icon: Icons.swap_vert_rounded,
-            label:
-                sensors.pitch == null ? 'Pitch --' : 'Pitch ${sensors.pitch!.toStringAsFixed(1)}°',
+            label: sensors.pitch == null
+                ? 'Pitch --'
+                : 'Pitch ${sensors.pitch!.toStringAsFixed(1)}°',
             color: _T.cyan,
           ),
           _sensorPlainItem(
             icon: Icons.screen_rotation_alt_rounded,
-            label: sensors.roll == null ? 'Roll --' : 'Roll ${sensors.roll!.toStringAsFixed(1)}°',
+            label: sensors.roll == null
+                ? 'Roll --'
+                : 'Roll ${sensors.roll!.toStringAsFixed(1)}°',
             color: _T.cyan,
           ),
           _sensorPlainItem(
@@ -1162,7 +1240,8 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected =
+        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     ref.listen<SensorStatus>(
       sensorStatusProvider,
@@ -1269,7 +1348,9 @@ class _RemoteControlScreenState extends ConsumerState<RemoteControlScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          isConnected ? 'Connected · $_modeTitle' : 'Disconnected · $_modeTitle',
+                          isConnected
+                              ? 'Connected · $_modeTitle'
+                              : 'Disconnected · $_modeTitle',
                           style: TextStyle(
                             color: isConnected ? _T.green : _T.red,
                             fontSize: 11,

@@ -1,4 +1,3 @@
-
 import 'package:logger/logger.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -8,12 +7,16 @@ import '../models/robot_model.dart';
 class WebSocketService {
   late WebSocketChannel _channel;
   final Logger _logger = Logger();
+
   bool _isConnected = false;
   final List<Function(dynamic message)> _listeners = [];
 
   Future<bool> connect() async {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(AppConstants.webSocketUrl));
+      _channel = WebSocketChannel.connect(
+        Uri.parse(AppConstants.webSocketUrl),
+      );
+
       _isConnected = true;
       _logger.i('WebSocket connected');
 
@@ -55,12 +58,15 @@ class WebSocketService {
       _channel.sink.add(message);
       _logger.i('Command sent via WebSocket: $message');
 
-      // Do not send SPEED with system, mode, arm, jack, or camera commands.
+      // Do not send SPEED with system, mode, arm, jack, camera,
+      // auto blocks, or test LEGO block commands.
       if (message.startsWith('SYS:') ||
           message.startsWith('MODE:') ||
           message.startsWith('ARM:') ||
           message.startsWith('JACK:') ||
-          message.startsWith('CAM:')) {
+          message.startsWith('CAM:') ||
+          message.startsWith('AUTO:') ||
+          message.startsWith('BLOCK:')) {
         return;
       }
 
@@ -71,6 +77,7 @@ class WebSocketService {
 
         final speedMessage = 'SPEED:$safeSpeed';
         _channel.sink.add(speedMessage);
+
         _logger.i('Speed sent via WebSocket: $speedMessage');
       }
     } catch (e) {
@@ -79,40 +86,59 @@ class WebSocketService {
   }
 
   String _mapCommandType(String commandType) {
-    if (commandType.startsWith('SYS:')) return commandType;
-    if (commandType.startsWith('MODE:')) return commandType;
-    if (commandType.startsWith('ARM:')) return commandType;
-    if (commandType.startsWith('JACK:')) return commandType;
-    if (commandType.startsWith('CAM:')) return commandType;
+    final raw = commandType.trim();
+    final upper = raw.toUpperCase();
 
-    switch (commandType) {
+    // Direct commands that must pass exactly as command strings.
+    if (upper.startsWith('SYS:')) return upper;
+    if (upper.startsWith('MODE:')) return upper;
+    if (upper.startsWith('ARM:')) return upper;
+    if (upper.startsWith('JACK:')) return upper;
+    if (upper.startsWith('CAM:')) return upper;
+
+    // New Mega LEGO / Auto commands.
+    if (upper.startsWith('AUTO:')) return upper;
+    if (upper.startsWith('BLOCK:')) return upper;
+
+    switch (raw) {
       case 'move_forward':
         return 'FORWARD';
+
       case 'move_backward':
         return 'BACKWARD';
+
       case 'turn_left':
         return 'LEFT';
+
       case 'turn_right':
         return 'RIGHT';
+
       case 'stop':
         return 'STOP';
 
       // For Drive Mode shortcuts
       case 'forward':
         return 'FORWARD';
+
       case 'backward':
         return 'BACKWARD';
+
       case 'left':
         return 'LEFT';
+
       case 'right':
         return 'RIGHT';
 
       default:
-        return commandType.toUpperCase();
+        return upper;
     }
   }
 
   void addListener(Function(dynamic message) listener) {
+    if (_listeners.contains(listener)) {
+      return;
+    }
+
     _listeners.add(listener);
   }
 
@@ -121,7 +147,7 @@ class WebSocketService {
   }
 
   void _notifyListeners(dynamic message) {
-    for (final listener in _listeners) {
+    for (final listener in List<Function(dynamic message)>.from(_listeners)) {
       listener(message);
     }
   }
@@ -129,18 +155,31 @@ class WebSocketService {
   Future<void> disconnect() async {
     try {
       if (_isConnected) {
+        // Stop Mega blocks / auto first.
+        _channel.sink.add('BLOCK:STOP');
+        _channel.sink.add('AUTO:STOP');
+
+        // Stop movement and jacks.
         _channel.sink.add('STOP');
+        _channel.sink.add('JACK:ALL:STOP');
         _channel.sink.add('JACK:FRONT:STOP');
         _channel.sink.add('JACK:REAR:STOP');
+
+        // Stop camera and arm motion.
         _channel.sink.add('CAM:STOP');
-        await Future.delayed(const Duration(milliseconds: 100));
+        _channel.sink.add('ARM:BASE:STOP');
+        _channel.sink.add('ARM:STOP');
+
+        await Future.delayed(const Duration(milliseconds: 120));
       }
 
       await _channel.sink.close();
       _isConnected = false;
+
       _logger.i('WebSocket disconnected');
     } catch (e) {
       _logger.e('Error disconnecting WebSocket: $e');
+      _isConnected = false;
     }
   }
 
