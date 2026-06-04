@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -20,15 +19,13 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
   String _lastAction = 'Ready';
   bool _isAssistRunning = false;
 
-  bool get _isConnected =>
-      ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+  bool get _isConnected => ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
   Future<void> _sendArmCommand(
     String command, {
     bool showSnack = true,
   }) async {
-    final isConnected =
-        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     if (!mounted) return;
 
@@ -73,8 +70,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
   Future<void> _runLiftAssist() async {
     if (_isAssistRunning) return;
 
-    final isConnected =
-        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     if (!isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -133,8 +129,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
   Future<void> _runLowerAssist() async {
     if (_isAssistRunning) return;
 
-    final isConnected =
-        ref.read(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.read(connectionStatusProvider) == ConnectionStatus.connected;
 
     if (!isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,8 +185,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConnected =
-        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     final settings = ref.watch(unoMotionSettingsProvider);
     final stepperSteps = settings.stepperSteps;
@@ -227,16 +221,13 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 servoStep: servoStep,
                 isAssistRunning: _isAssistRunning,
               ),
-
               const SizedBox(height: AppSpacing.lg),
-
               _SectionTitle(
                 title: 'Lift Assist Test',
                 subtitle:
                     'Use small staged movements to reduce shoulder and elbow shaking under load',
               ),
               const SizedBox(height: AppSpacing.md),
-
               Row(
                 children: [
                   Expanded(
@@ -262,22 +253,17 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.md),
-
               _InfoBox(
                 text:
                     'Lift Assist sends small commands in sequence: wrist, elbow, shoulder. This may reduce shaking, but if the servo torque or power is weak, the mechanical issue will still remain.',
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Base Stepper',
                 subtitle: 'Arm base moves $stepperSteps steps per click',
               ),
               const SizedBox(height: AppSpacing.md),
-
               Row(
                 children: [
                   Expanded(
@@ -315,13 +301,10 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _JointControlSection(
                 title: 'Shoulder',
-                subtitle:
-                    'Main load servo. Use small steps when the arm carries weight.',
+                subtitle: 'Main load servo. Use small steps when the arm carries weight.',
                 upLabel: 'SH UP\n$servoStep°',
                 downLabel: 'SH DOWN\n$servoStep°',
                 upCommand: 'ARM:SHOULDER:UP:$servoStep',
@@ -330,13 +313,10 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 enabled: isConnected && !_isAssistRunning,
                 onCommand: _sendArmCommand,
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _JointControlSection(
                 title: 'Elbow',
-                subtitle:
-                    'Second main load servo. If shaking appears, use Lift Assist.',
+                subtitle: 'Second main load servo. If shaking appears, use Lift Assist.',
                 upLabel: 'ELB UP\n$servoStep°',
                 downLabel: 'ELB DOWN\n$servoStep°',
                 upCommand: 'ARM:ELBOW:UP:$servoStep',
@@ -345,9 +325,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 enabled: isConnected && !_isAssistRunning,
                 onCommand: _sendArmCommand,
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _JointControlSection(
                 title: 'Wrist',
                 subtitle: 'Adjust object angle before lifting.',
@@ -359,9 +337,7 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 enabled: isConnected && !_isAssistRunning,
                 onCommand: _sendArmCommand,
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _JointControlSection(
                 title: 'AUX',
                 subtitle: 'Auxiliary servo axis.',
@@ -373,15 +349,12 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                 enabled: isConnected && !_isAssistRunning,
                 onCommand: _sendArmCommand,
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Gripper',
                 subtitle: 'Open and close object gripper',
               ),
               const SizedBox(height: AppSpacing.md),
-
               Row(
                 children: [
                   Expanded(
@@ -405,15 +378,12 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
-
               _SectionTitle(
                 title: 'Safe Positions',
                 subtitle: 'Use READY before testing, HOME when done.',
               ),
               const SizedBox(height: AppSpacing.md),
-
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -437,6 +407,13 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                     onTap: () => _sendArmCommand('ARM:HOME'),
                   ),
                   _QuickActionButton(
+                    label: 'DROP',
+                    icon: Icons.home,
+                    color: Colors.orangeAccent,
+                    enabled: isConnected,
+                    onTap: () => _sendArmCommand('ARM:DROP'),
+                  ),
+                  _QuickActionButton(
                     label: 'ARM STOP',
                     icon: Icons.stop_circle,
                     color: Colors.redAccent,
@@ -452,7 +429,6 @@ class _ArmControlScreenState extends ConsumerState<ArmControlScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppSpacing.xl),
             ],
           ),
@@ -705,9 +681,7 @@ class _LargeActionButton extends StatelessWidget {
         height: 96,
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: enabled
-              ? color.withValues(alpha: 0.14)
-              : Colors.grey.withValues(alpha: 0.1),
+          color: enabled ? color.withValues(alpha: 0.14) : Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppBorderRadius.lg),
           border: Border.all(
             color: enabled ? color.withValues(alpha: 0.85) : Colors.grey,
@@ -733,9 +707,7 @@ class _LargeActionButton extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: enabled
-                    ? Colors.white.withValues(alpha: 0.65)
-                    : Colors.grey,
+                color: enabled ? Colors.white.withValues(alpha: 0.65) : Colors.grey,
                 fontSize: 10,
               ),
             ),
@@ -768,9 +740,7 @@ class _ArmCommandButton extends StatelessWidget {
       child: Container(
         height: 82,
         decoration: BoxDecoration(
-          color: enabled
-              ? color.withValues(alpha: 0.14)
-              : Colors.grey.withValues(alpha: 0.1),
+          color: enabled ? color.withValues(alpha: 0.14) : Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppBorderRadius.lg),
           border: Border.all(
             color: enabled ? color.withValues(alpha: 0.85) : Colors.grey,
@@ -820,9 +790,7 @@ class _QuickActionButton extends StatelessWidget {
       onTap: enabled ? onTap : null,
       child: Container(
         decoration: BoxDecoration(
-          color: enabled
-              ? color.withValues(alpha: 0.12)
-              : Colors.grey.withValues(alpha: 0.1),
+          color: enabled ? color.withValues(alpha: 0.12) : Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppBorderRadius.lg),
           border: Border.all(
             color: enabled ? color.withValues(alpha: 0.8) : Colors.grey,

@@ -25,7 +25,6 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
   double _speedValue = 60.0;
   double _stepperStepsValue = 100.0;
   double _servoAngleStepValue = 5.0;
-
   bool _isMoving = false;
   String _lastCommand = 'READY';
 
@@ -41,8 +40,7 @@ class _ControlScreenState extends ConsumerState<ControlScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConnected =
-        ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
+    final isConnected = ref.watch(connectionStatusProvider) == ConnectionStatus.connected;
 
     return Container(
       decoration: const BoxDecoration(

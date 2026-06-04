@@ -492,14 +492,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         duration: const Duration(milliseconds: 160),
         height: 52,
         decoration: BoxDecoration(
-          color: selected
-              ? color.withValues(alpha: 0.17)
-              : Colors.white.withValues(alpha: 0.05),
+          color: selected ? color.withValues(alpha: 0.17) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected
-                ? color.withValues(alpha: 0.75)
-                : Colors.white.withValues(alpha: 0.10),
+            color: selected ? color.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.10),
             width: selected ? 1.4 : 1.0,
           ),
         ),
@@ -723,6 +719,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _systemOverviewPanel(dynamic robot, bool isConnected) {
     final mode = _raspberryStatus.mode.toUpperCase();
+
     final displayMode = mode == 'AUTO'
         ? 'Auto'
         : mode == 'MANUAL'
@@ -738,9 +735,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           _overviewTile(
             title: 'Control Mode',
             value: displayMode,
-            icon: mode == 'AUTO'
-                ? Icons.auto_mode_rounded
-                : Icons.touch_app_rounded,
+            icon: mode == 'AUTO' ? Icons.auto_mode_rounded : Icons.touch_app_rounded,
             color: mode == 'AUTO' ? Colors.orangeAccent : _cyanColor,
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -760,9 +755,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: AppSpacing.sm),
           _overviewTile(
             title: 'Sensors',
-            value: _raspberryStatus.sensorBridgeRunning
-                ? 'Raspberry Bridge'
-                : 'No Data',
+            value: _raspberryStatus.sensorBridgeRunning ? 'Raspberry Bridge' : 'No Data',
             icon: Icons.sensors_rounded,
             color: Colors.purpleAccent,
           ),

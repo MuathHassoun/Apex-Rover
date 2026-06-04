@@ -236,8 +236,7 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
   }
 
   List<AutoTrackItem> _parseTrack(Map<String, dynamic> json) {
-    final dynamic raw =
-        json['track'] ?? json['events'] ?? json['logs'] ?? json['timeline'];
+    final dynamic raw = json['track'] ?? json['events'] ?? json['logs'] ?? json['timeline'];
 
     if (raw is List) {
       return raw.map((item) {
@@ -402,9 +401,8 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? _cyanColor.withValues(alpha: 0.18)
-              : Colors.white.withValues(alpha: 0.06),
+          color:
+              selected ? _cyanColor.withValues(alpha: 0.18) : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
@@ -555,9 +553,7 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
                 ),
               ),
               child: Text(
-                _resolvedRaspberryHost == null
-                    ? 'Scanning...'
-                    : _resolvedRaspberryHost!,
+                _resolvedRaspberryHost == null ? 'Scanning...' : _resolvedRaspberryHost!,
                 style: const TextStyle(
                   color: Colors.white70,
                   fontWeight: FontWeight.bold,
@@ -754,14 +750,12 @@ class _AutoStatusScreenState extends State<AutoStatusScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: item.important
-            ? color.withValues(alpha: 0.13)
-            : Colors.white.withValues(alpha: 0.045),
+        color:
+            item.important ? color.withValues(alpha: 0.13) : Colors.white.withValues(alpha: 0.045),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: item.important
-              ? color.withValues(alpha: 0.50)
-              : Colors.white.withValues(alpha: 0.08),
+          color:
+              item.important ? color.withValues(alpha: 0.50) : Colors.white.withValues(alpha: 0.08),
         ),
       ),
       child: Row(
@@ -927,9 +921,7 @@ class AutoTrackItem {
   });
 
   factory AutoTrackItem.fromJson(Map<String, dynamic> json) {
-    final type = (json['type'] ?? json['level'] ?? json['kind'] ?? 'info')
-        .toString()
-        .toLowerCase();
+    final type = (json['type'] ?? json['level'] ?? json['kind'] ?? 'info').toString().toLowerCase();
 
     final message = (json['message'] ??
             json['text'] ??
