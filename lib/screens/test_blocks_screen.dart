@@ -18,6 +18,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
   static const Color _borderColor = Color(0xFF1E3858);
   static const Color _cyanColor = Color(0xFF00B4FF);
   static const Color _greenColor = Color(0xFF00E676);
+  static const Color _blueColor = Color(0xFF448AFF);
   static const Color _orangeColor = Color(0xFFFFB74D);
   static const Color _redColor = Color(0xFFFF5252);
   static const Color _mutedColor = Color(0xFF9AA8BA);
@@ -56,10 +57,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
     if (_listenerAttached) return;
 
     try {
-      ref
-          .read(connectionStatusProvider.notifier)
-          .wsService
-          .addListener(_handleIncomingMessage);
+      ref.read(connectionStatusProvider.notifier).wsService.addListener(_handleIncomingMessage);
 
       _listenerAttached = true;
     } catch (_) {}
@@ -87,8 +85,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
     if (!mounted) return;
 
     final now = TimeOfDay.now();
-    final time =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     setState(() {
       _logs.insert(0, '[$time] $tag: $message');
@@ -116,9 +113,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
         timestamp: DateTime.now(),
       );
 
-      await ref
-          .read(connectionStatusProvider.notifier)
-          .sendCommand(controlCommand);
+      await ref.read(connectionStatusProvider.notifier).sendCommand(controlCommand);
 
       _addLog('TX', command);
       _showSnack('Sent: $command');
@@ -154,13 +149,22 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
         children: [
           _buildHeader(connected),
           const SizedBox(height: 14),
-
           _buildSection(
             title: 'Auto Scenarios',
             subtitle: 'Test full Mega state machines',
             icon: Icons.auto_mode_rounded,
             child: Column(
               children: [
+                Expanded(
+                  child: _commandButton(
+                    label: 'FULL SCENARIO: UP/DOWN Stairs',
+                    command: 'AUTO:FULL_SCENARIO',
+                    icon: Icons.stairs_rounded,
+                    color: _blueColor,
+                    important: true,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
@@ -195,9 +199,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 14),
-
           _buildSection(
             title: 'Turn Block',
             subtitle: 'Mega uses MPU yaw for turning',
@@ -242,9 +244,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 14),
-
           _buildSection(
             title: 'Go Block',
             subtitle: 'Time-based amount for forward/backward movement',
@@ -289,9 +289,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 14),
-
           _buildSection(
             title: 'Jack Blocks',
             subtitle: 'Time-based jack extend/retract test',
@@ -358,9 +356,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 14),
-
           _buildSection(
             title: 'Emergency',
             subtitle: 'Direct stop commands',
@@ -389,9 +385,7 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 14),
-
           _buildLogs(),
         ],
       ),
@@ -746,13 +740,3 @@ class _TestBlocksScreenState extends ConsumerState<TestBlocksScreen> {
     );
   }
 }
-    
-
-
-
-
-
-
-
-
-
